@@ -1,0 +1,294 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  
+  /* Base Colors */
+  --teal-50: 166 82% 96%;
+  --teal-100: 167 85% 89%;
+  --teal-200: 168 84% 78%;
+  --teal-300: 171 77% 64%;
+  --teal-400: 172 66% 50%;
+  --teal-500: 173 80% 40%;
+  --teal-600: 175 84% 32%;
+  --teal-700: 175 77% 26%;
+  --teal-800: 176 69% 22%;
+  --teal-900: 176 61% 19%;
+  --teal-950: 179 84% 10%;
+  
+  --blue-50: 214 100% 97%;
+  --blue-100: 214 95% 93%;
+  --blue-200: 213 97% 87%;
+  --blue-300: 212 96% 78%;
+  --blue-400: 213 94% 68%;
+  --blue-500: 217 91% 60%;
+  --blue-600: 221 83% 53%;
+  --blue-700: 224 76% 48%;
+  --blue-800: 226 71% 40%;
+  --blue-900: 224 64% 33%;
+  --blue-950: 226 57% 21%;
+  
+  --purple-50: 270 100% 98%;
+  --purple-100: 269 100% 95%;
+  --purple-200: 269 100% 91%;
+  --purple-300: 269 97% 85%;
+  --purple-400: 270 95% 75%;
+  --purple-500: 271 91% 65%;
+  --purple-600: 271 81% 56%;
+  --purple-700: 273 67% 47%;
+  --purple-800: 274 66% 41%;
+  --purple-900: 276 59% 36%;
+  --purple-950: 276 60% 25%;
+  
+  --rose-50: 356 100% 97%;
+  --rose-100: 356 100% 94%;
+  --rose-200: 353 96% 90%;
+  --rose-300: 353 96% 82%;
+  --rose-400: 351 95% 71%;
+  --rose-500: 350 89% 60%;
+  --rose-600: 347 77% 50%;
+  --rose-700: 345 83% 41%;
+  --rose-800: 343 80% 35%;
+  --rose-900: 342 75% 30%;
+  --rose-950: 343 88% 16%;
+  
+  --slate-50: 210 40% 98%;
+  --slate-100: 210 40% 96%;
+  --slate-200: 214 32% 91%;
+  --slate-300: 213 27% 84%;
+  --slate-400: 215 20% 65%;
+  --slate-500: 215 16% 47%;
+  --slate-600: 215 19% 35%;
+  --slate-700: 215 25% 27%;
+  --slate-800: 217 33% 17%;
+  --slate-900: 222 47% 11%;
+  --slate-950: 229 84% 5%;
+  
+  /* Theme: Light */
+  --background: var(--slate-50);
+  --foreground: var(--slate-900);
+  
+  --card: 0 0% 100%;
+  --card-foreground: var(--slate-900);
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: var(--slate-900);
+  
+  --primary: var(--teal-600);
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: var(--blue-600);
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: var(--slate-100);
+  --muted-foreground: var(--slate-500);
+  
+  --accent: var(--purple-600);
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: var(--rose-600);
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: var(--slate-200);
+  --input: var(--slate-200);
+  --ring: var(--teal-600);
+  
+  /* Component-specific colors */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: var(--slate-900);
+  --sidebar-primary: var(--teal-600);
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: var(--purple-600);
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: var(--slate-200);
+  --sidebar-ring: var(--teal-600);
+  
+  --info: var(--purple-600);
+  --info-foreground: 0 0% 100%;
+  --success: var(--teal-600);
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --error: var(--rose-600);
+  --error-foreground: 0 0% 100%;
+  
+  /* Chart Colors */
+  --chart-1: var(--teal-500);
+  --chart-2: var(--blue-500);
+  --chart-3: var(--purple-500);
+  --chart-4: var(--teal-700);
+  --chart-5: var(--blue-700);
+}
+
+/* Dynamic theme colors for accent customization */
+:root[data-accent="teal"] {
+  --accent: var(--teal-600);
+  --accent-foreground: 0 0% 100%;
+  --accent-50: var(--teal-50);
+  --accent-100: var(--teal-100);
+  --accent-200: var(--teal-200);
+  --accent-300: var(--teal-300);
+  --accent-400: var(--teal-400);
+  --accent-500: var(--teal-500);
+  --accent-600: var(--teal-600);
+  --accent-700: var(--teal-700);
+  --accent-800: var(--teal-800);
+  --accent-900: var(--teal-900);
+  --accent-950: var(--teal-950);
+}
+
+:root[data-accent="blue"] {
+  --accent: var(--blue-600);
+  --accent-foreground: 0 0% 100%;
+  --accent-50: var(--blue-50);
+  --accent-100: var(--blue-100);
+  --accent-200: var(--blue-200);
+  --accent-300: var(--blue-300);
+  --accent-400: var(--blue-400);
+  --accent-500: var(--blue-500);
+  --accent-600: var(--blue-600);
+  --accent-700: var(--blue-700);
+  --accent-800: var(--blue-800);
+  --accent-900: var(--blue-900);
+  --accent-950: var(--blue-950);
+}
+
+:root[data-accent="purple"] {
+  --accent: var(--purple-600);
+  --accent-foreground: 0 0% 100%;
+  --accent-50: var(--purple-50);
+  --accent-100: var(--purple-100);
+  --accent-200: var(--purple-200);
+  --accent-300: var(--purple-300);
+  --accent-400: var(--purple-400);
+  --accent-500: var(--purple-500);
+  --accent-600: var(--purple-600);
+  --accent-700: var(--purple-700);
+  --accent-800: var(--purple-800);
+  --accent-900: var(--purple-900);
+  --accent-950: var(--purple-950);
+}
+
+:root[data-accent="rose"] {
+  --accent: var(--rose-600);
+  --accent-foreground: 0 0% 100%;
+  --accent-50: var(--rose-50);
+  --accent-100: var(--rose-100);
+  --accent-200: var(--rose-200);
+  --accent-300: var(--rose-300);
+  --accent-400: var(--rose-400);
+  --accent-500: var(--rose-500);
+  --accent-600: var(--rose-600);
+  --accent-700: var(--rose-700);
+  --accent-800: var(--rose-800);
+  --accent-900: var(--rose-900);
+  --accent-950: var(--rose-950);
+}
+
+.dark {
+  --background: var(--slate-900);
+  --foreground: var(--slate-50);
+  
+  --card: var(--slate-800);
+  --card-foreground: var(--slate-50);
+  
+  --popover: var(--slate-800);
+  --popover-foreground: var(--slate-50);
+  
+  --primary: var(--teal-500);
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: var(--blue-500);
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: var(--slate-700);
+  --muted-foreground: var(--slate-400);
+  
+  --accent: var(--purple-500);
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: var(--rose-500);
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: var(--slate-700);
+  --input: var(--slate-700);
+  --ring: var(--teal-500);
+  
+  /* Component-specific colors */
+  --sidebar: var(--slate-800);
+  --sidebar-foreground: var(--slate-50);
+  --sidebar-primary: var(--teal-500);
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: var(--purple-500);
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: var(--slate-700);
+  --sidebar-ring: var(--teal-500);
+  
+  --info: var(--purple-500);
+  --info-foreground: 0 0% 100%;
+  --success: var(--teal-500);
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --error: var(--rose-500);
+  --error-foreground: 0 0% 100%;
+  
+  /* Chart Colors */
+  --chart-1: var(--teal-400);
+  --chart-2: var(--blue-400);
+  --chart-3: var(--purple-400);
+  --chart-4: var(--teal-600);
+  --chart-5: var(--blue-600);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
