@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-DairymanagementsystemApplication<dairymanagementsystem>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.jaysambhu.dairymanagementsystem.DairymanagementsystemApplication",
+            "projectName": "dairymanagementsystem",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
