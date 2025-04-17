@@ -1,0 +1,29 @@
+-- Create tables
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(255) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    enabled BOOLEAN DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+-- Insert default roles
+INSERT INTO roles (name) VALUES ('ADMIN') ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('STAFF') ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('SUPPLIER') ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('CUSTOMER') ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('RECEPTIONIST') ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('MANAGER') ON CONFLICT (name) DO NOTHING;
