@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useTheme } from '../providers';
+import { useTheme, useAuth } from '../providers';
 
 // Icons
-import { 
-  LayoutDashboard, Users, Droplet, Package, 
-  ShoppingCart, BarChart2, Settings, ChevronDown, 
-  Bell, Search, Menu, X, ShoppingBag, Truck, 
-  Map, PieChart as PieChartIcon, ArrowDown, ArrowUp, Activity, 
+import {
+  LayoutDashboard, Users, Droplet, Package,
+  ShoppingCart, BarChart2, Settings, ChevronDown,
+  Bell, Search, Menu, X, ShoppingBag, Truck,
+  Map, PieChart as PieChartIcon, ArrowDown, ArrowUp, Activity,
   Moon, Sun, Palette
 } from 'lucide-react';
 
@@ -20,12 +19,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -41,7 +40,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { theme, accentColor, setTheme, setAccentColor } = useTheme();
@@ -71,10 +70,10 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
     }
-  }, [status, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
@@ -84,11 +83,19 @@ export default function DashboardLayout({
     setAccentColor(color as 'teal' | 'blue' | 'purple' | 'rose');
   };
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/auth/login' });
+  const handleLogout = async () => {
+    // Show some loading state if desired
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Still redirect even if there's an error
+      router.push('/login');
+    }
   };
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2563eb] dark:border-blue-400"></div>
@@ -96,7 +103,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!session) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -120,14 +127,14 @@ export default function DashboardLayout({
       <div className="flex h-screen bg-[#f8fafc] dark:bg-gray-900 w-full">
         {/* Mobile Sidebar Overlay */}
         {mobileNavOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={() => setMobileNavOpen(false)}
           />
         )}
 
         {/* Sidebar */}
-        <div 
+        <div
           className={cn(
             "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out transform lg:translate-x-0 lg:static lg:inset-auto lg:z-auto",
             mobileNavOpen ? "translate-x-0" : "-translate-x-full"
@@ -150,13 +157,13 @@ export default function DashboardLayout({
           <div className="py-4 overflow-y-auto h-[calc(100%-4rem)]">
             <nav className="px-2 space-y-1">
               {sidebarItems.map((item, index) => (
-                <Link 
-                  key={index} 
-                  href={item.href} 
+                <Link
+                  key={index}
+                  href={item.href}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                    pathname === item.href 
-                      ? "bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400" 
+                    pathname === item.href
+                      ? "bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700/50"
                   )}
                 >
@@ -172,10 +179,10 @@ export default function DashboardLayout({
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Navbar */}
           <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 lg:px-6">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setMobileNavOpen(true)} 
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileNavOpen(true)}
               className="lg:hidden dark:text-gray-300"
             >
               <Menu size={20} />
@@ -183,22 +190,22 @@ export default function DashboardLayout({
 
             {/* Search */}
             <div className="ml-4 hidden md:flex relative flex-1 max-w-md">
-              <Search 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
-                size={18} 
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
               />
-              <Input 
-                placeholder="Search..." 
-                className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:bg-white dark:focus:bg-gray-600 dark:text-gray-200" 
+              <Input
+                placeholder="Search..."
+                className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:bg-white dark:focus:bg-gray-600 dark:text-gray-200"
               />
             </div>
 
             <div className="ml-auto flex items-center gap-4">
               {/* Theme Toggle */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleTheme} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
                 className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
@@ -239,48 +246,54 @@ export default function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 dark:text-gray-300">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatar.png" alt={session.user.name} />
-                      <AvatarFallback>{session.user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src="/avatar.png" alt={user?.name || 'User'} />
+                      <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:inline-block font-medium text-sm">{session.user.name}</span>
+                    <span className="hidden md:inline-block font-medium text-sm">{user?.name || 'User'}</span>
                     <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 dark:border-gray-700">
                   <DropdownMenuLabel className="dark:text-gray-200">My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
+                  <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
+                    <Link href="/dashboard/profile" className="flex w-full">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
+                    <Link href="/dashboard/settings" className="flex w-full">Settings</Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="dark:bg-gray-700" />
+
+                  {/* Theme Sub Menu */}
                   <DropdownMenuSub>
-                    <DropdownMenuSubTrigger className="dark:text-gray-200 dark:focus:bg-gray-700">
+                    <DropdownMenuSubTrigger className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
                       <Palette className="mr-2 h-4 w-4" />
-                      <span>Color Theme</span>
+                      <span>Theme</span>
                     </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-48 bg-white dark:bg-gray-800 dark:border-gray-700">
+                    <DropdownMenuSubContent className="bg-white dark:bg-gray-800 dark:border-gray-700">
                       <DropdownMenuRadioGroup value={accentColor} onValueChange={changeAccentColor}>
                         {colorOptions.map((color) => (
-                          <DropdownMenuRadioItem 
-                            key={color.value} 
+                          <DropdownMenuRadioItem
+                            key={color.value}
                             value={color.value}
-                            className="dark:text-gray-200 dark:focus:bg-gray-700"
+                            className="cursor-pointer flex items-center dark:text-gray-200 dark:focus:bg-gray-700"
                           >
-                            <div className="flex items-center gap-2">
-                              <div className={`h-4 w-4 rounded-full ${color.bgClass}`} />
-                              {color.label}
-                            </div>
+                            <div className={`mr-2 h-4 w-4 rounded-full ${color.bgClass}`} />
+                            {color.label}
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
                     </DropdownMenuSubContent>
                   </DropdownMenuSub>
-                  
-                  <DropdownMenuItem className="dark:text-gray-200 dark:focus:bg-gray-700">
-                    <Link href="/dashboard/profile" className="w-full">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="dark:text-gray-200 dark:focus:bg-gray-700">
-                    <Link href="/dashboard/settings" className="w-full">Settings</Link>
-                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator className="dark:bg-gray-700" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 dark:text-red-400 dark:focus:bg-gray-700">
-                    Logout
+
+                  <DropdownMenuItem
+                    className="cursor-pointer text-red-600 dark:text-red-400 dark:focus:bg-gray-700"
+                    onClick={handleLogout}
+                  >
+                    Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

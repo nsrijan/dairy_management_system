@@ -1,8 +1,9 @@
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { logoutUser } from '@/features/auth/login/loginService';
 
+// Theme Context
 type Theme = 'light' | 'dark';
 type AccentColor = 'teal' | 'blue' | 'purple' | 'rose';
 
@@ -23,6 +24,33 @@ export function useTheme() {
   return context;
 }
 
+// Auth Context
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  token: string | null;
+  login: (token: string, user: User) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
 function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [accentColor, setAccentColorState] = useState<AccentColor>('teal');
@@ -32,12 +60,12 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     // Check if theme is stored in localStorage
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     const savedColor = localStorage.getItem('accentColor') as AccentColor | null;
-    
+
     if (savedTheme) {
       setThemeState(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     }
-    
+
     if (savedColor) {
       setAccentColorState(savedColor);
       document.documentElement.setAttribute('data-accent', savedColor);
@@ -71,10 +99,84 @@ function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if token exists in localStorage or cookies
+    const storedToken = localStorage.getItem('auth_token') || getCookie('auth_token');
+
+    if (storedToken) {
+      setToken(storedToken);
+      // Try to get user info from localStorage if available
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Failed to parse stored user', e);
+        }
+      }
+      // In a real app, you might want to validate the token with the server here
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  const login = (newToken: string, newUser: User) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem('auth_token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    document.cookie = `auth_token=${newToken}; path=/; max-age=86400; secure`;
+  };
+
+  const logout = async () => {
+    // Call backend to invalidate the token
+    try {
+      await logoutUser(token);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      // Clear local state regardless of backend success
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+  };
+
+  // Helper function to get cookie value by name
+  function getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token,
+        isLoading,
+        login,
+        logout
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <SessionProvider>
+    <AuthProvider>
       <ThemeProvider>{children}</ThemeProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 } 
