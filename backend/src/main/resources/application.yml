@@ -8,19 +8,38 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update  # Create tables automatically
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
   flyway:
     enabled: false  # Disable Flyway for now
 
+# Swagger / OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true
+  show-actuator: true
+  packages-to-scan: com.jaysambhu.dairymanagementsystem
+
+# JWT Configuration
 jwt:
   secret: 9c3e158958de16ec1534ca1e48c59c304e8eb291fd61ca8c492d05ed2b4cc8171d3defcb807abd9c1555cbba7ac6890b02324b8392c58acd655e0f9d8b9354bc
-  expiration: 86400000  # 24 hours in milliseconds 
+  expiration: 86400000  # 24 hours in milliseconds
+
+# Server configuration
+server:
+  port: 8080
+
+# Logging configuration
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.jaysambhu.dairymanagementsystem: DEBUG 
