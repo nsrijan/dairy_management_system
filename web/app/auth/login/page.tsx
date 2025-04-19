@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,35 +8,76 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { loginUser } from '@/features/auth/login/loginService';
+import { useAuth } from '../../providers';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Check if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
+  // Handle navigation after successful login
+  useEffect(() => {
+    if (loginSuccess) {
+      console.log('Login successful, redirecting to dashboard...');
+      setTimeout(() => {
+        router.push('/dashboard');
+        router.refresh(); // Force refresh to update navigation state
+      }, 500); // Short delay to ensure token is saved
+    }
+  }, [loginSuccess, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setDebugInfo(null);
     setLoading(true);
+    setLoginSuccess(false);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
+    const usernameOrEmail = formData.get('usernameOrEmail') as string;
     const password = formData.get('password') as string;
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+      // Show API URL for debugging
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      setDebugInfo(`Connecting to backend at: ${apiUrl}/api/v1/auth/login`);
 
-      if (result?.error) {
-        setError(result.error);
-      } else if (result?.ok) {
-        router.push('/dashboard');
+      const response = await loginUser({ usernameOrEmail, password });
+
+      // Show success message
+      console.log('Login successful, received token:', response.token.substring(0, 15) + '...');
+      setDebugInfo(`Login successful! Redirecting to dashboard...`);
+
+      // Use the auth context to login
+      login(response.token, response.user);
+
+      // Set success state to trigger the navigation effect
+      setLoginSuccess(true);
+    } catch (err: any) {
+      console.error('Login error caught in page:', err);
+      setError(err.message || 'Invalid username/email or password');
+
+      // Add more debug info for developer
+      if (process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true') {
+        setDebugInfo(`
+          Error Details:
+          - Message: ${err.message}
+          - Check browser console for full error logs
+          - Ensure Spring Boot server is running at ${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login
+          - Check CORS configuration on backend
+        `);
       }
-    } catch (err) {
-      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -55,14 +95,15 @@ export default function LoginPage() {
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit} method="POST">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="usernameOrEmail">Username or Email</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="name@example.com"
-                autoComplete="email"
+                id="usernameOrEmail"
+                name="usernameOrEmail"
+                type="text"
+                placeholder="johndoe or john@example.com"
+                autoComplete="username"
                 required
+                disabled={loginSuccess}
               />
             </div>
             <div className="space-y-2">
@@ -82,6 +123,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 required
+                disabled={loginSuccess}
               />
             </div>
 
@@ -91,8 +133,20 @@ export default function LoginPage() {
               </Alert>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+            {loginSuccess && (
+              <Alert className="text-sm bg-green-50 text-green-700 border-green-200">
+                <AlertDescription>Login successful! Redirecting to dashboard...</AlertDescription>
+              </Alert>
+            )}
+
+            {debugInfo && (
+              <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-100 rounded whitespace-pre-line">
+                {debugInfo}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading || loginSuccess}>
+              {loading ? 'Signing in...' : loginSuccess ? 'Redirecting...' : 'Sign in'}
             </Button>
           </form>
         </CardContent>

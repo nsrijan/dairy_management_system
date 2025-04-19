@@ -1,96 +1,163 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { loginUser } from '@/features/auth/login/loginService';
+import { useAuth } from '../providers';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const { login, isAuthenticated } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Check if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
+  // Handle navigation after successful login
+  useEffect(() => {
+    if (loginSuccess) {
+      console.log('Login successful, redirecting to dashboard...');
+      setTimeout(() => {
+        router.push('/dashboard');
+        router.refresh(); // Force refresh to update navigation state
+      }, 500); // Short delay to ensure token is saved
+    }
+  }, [loginSuccess, router]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    console.log('Login attempt with:', { email });
+    setError(null);
+    setDebugInfo(null);
+    setLoading(true);
+    setLoginSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+    const usernameOrEmail = formData.get('usernameOrEmail') as string;
+    const password = formData.get('password') as string;
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Show API URL for debugging
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      setDebugInfo(`Connecting to backend at: ${apiUrl}/api/v1/auth/login`);
 
-      console.log('Login response status:', response.status);
-      const data = await response.json();
-      console.log('Login response data:', data);
+      const response = await loginUser({ usernameOrEmail, password });
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      // Show success message
+      console.log('Login successful, received token:', response.token.substring(0, 15) + '...');
+      setDebugInfo(`Login successful! Redirecting to dashboard...`);
+
+      // Use the auth context to login
+      login(response.token, response.user);
+
+      // Set success state to trigger the navigation effect
+      setLoginSuccess(true);
+    } catch (err: any) {
+      console.error('Login error caught in page:', err);
+      setError(err.message || 'Invalid username/email or password');
+
+      // Add more debug info for developer
+      if (process.env.NEXT_PUBLIC_DEVELOPMENT_MODE === 'true') {
+        setDebugInfo(`
+          Error Details:
+          - Message: ${err.message}
+          - Check browser console for full error logs
+          - Ensure Spring Boot server is running at ${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login
+          - Check CORS configuration on backend
+        `);
       }
-
-      router.push('/dashboard');
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access your account
+          </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="text-red-500 text-sm">{error}</div>
-            )}
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleSubmit} method="POST">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
+              <Label htmlFor="usernameOrEmail">Username or Email</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="usernameOrEmail"
+                name="usernameOrEmail"
+                type="text"
+                placeholder="johndoe or john@example.com"
+                autoComplete="username"
                 required
+                disabled={loginSuccess}
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
                 required
+                disabled={loginSuccess}
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Login
+
+            {error && (
+              <Alert variant="destructive" className="text-sm">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {loginSuccess && (
+              <Alert className="text-sm bg-green-50 text-green-700 border-green-200">
+                <AlertDescription>Login successful! Redirecting to dashboard...</AlertDescription>
+              </Alert>
+            )}
+
+            {debugInfo && (
+              <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-100 rounded whitespace-pre-line">
+                {debugInfo}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading || loginSuccess}>
+              {loading ? 'Signing in...' : loginSuccess ? 'Redirecting...' : 'Sign in'}
             </Button>
-            <div className="text-center text-sm">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-blue-500 hover:underline">
-                Register
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col">
+          <div className="text-sm text-center text-muted-foreground">
+            Don't have an account?{' '}
+            <Link href="/register" className="text-primary font-medium hover:underline">
+              Create account
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );

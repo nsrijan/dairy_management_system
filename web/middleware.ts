@@ -1,48 +1,56 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   console.log('Middleware called for path:', request.nextUrl.pathname);
-  
-  const token = await getToken({ 
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  console.log('Token found:', !!token);
-  
-  const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
+
+  // Check if auth token cookie is present
+  const authToken = request.cookies.get('auth_token')?.value;
+  const isAuthenticated = !!authToken;
+
+  console.log('Token found:', isAuthenticated);
+
+  const isLoginPage = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/auth/login';
+  const isRegisterPage = request.nextUrl.pathname === '/register' || request.nextUrl.pathname === '/auth/register';
+  const isPublicApiRoute = request.nextUrl.pathname.startsWith('/api/public');
   const isRootPath = request.nextUrl.pathname === '/';
 
-  if (isAuthPage) {
-    console.log('Auth page detected');
-    if (token) {
-      console.log('User authenticated, redirecting to dashboard');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    console.log('User not authenticated, allowing access to auth page');
+  // Don't redirect public API routes
+  if (isPublicApiRoute) {
     return NextResponse.next();
   }
 
-  if (isRootPath) {
-    console.log('Root path detected');
-    if (token) {
-      console.log('User authenticated, redirecting to dashboard');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    console.log('User not authenticated, redirecting to login');
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+  // Redirect to dashboard if logged in and trying to access login/register page
+  if ((isLoginPage || isRegisterPage) && isAuthenticated) {
+    console.log('User authenticated, redirecting to dashboard');
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!token) {
+  // Redirect to dashboard if logged in and accessing root path
+  if (isRootPath && isAuthenticated) {
+    console.log('User authenticated at root, redirecting to dashboard');
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Redirect to login if not logged in and not on login/register page or public API
+  if (!isAuthenticated && !isLoginPage && !isRegisterPage && !isPublicApiRoute) {
     console.log('Protected route accessed without authentication');
-    return NextResponse.redirect(new URL('/auth/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  console.log('User authenticated, allowing access to protected route');
+  console.log('Access allowed');
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/auth/:path*'],
+  matcher: [
+    '/',
+    '/dashboard/:path*',
+    '/login',
+    '/register',
+    '/auth/login',
+    '/auth/register',
+    '/api/public/:path*',
+    '/features/:path*',
+  ],
 }; 
