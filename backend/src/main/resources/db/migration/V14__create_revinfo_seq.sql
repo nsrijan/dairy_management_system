@@ -1,0 +1,6 @@
+-- Create sequence for revinfo table
+CREATE SEQUENCE IF NOT EXISTS revinfo_seq
+    INCREMENT BY 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    START WITH 1; 
