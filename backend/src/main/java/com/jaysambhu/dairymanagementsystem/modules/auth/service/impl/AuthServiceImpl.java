@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -69,14 +70,22 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new BadRequestException("User not found"));
 
-        // Get roles
+        // Get roles and permissions
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(authority -> authority.startsWith("ROLE_"))
                 .collect(Collectors.toList());
 
-        // Generate token with tenant information
-        String token = jwtService.generateToken(userDetails, user.getPrimaryTenant().getId());
+        List<String> permissions = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("PERMISSION_"))
+                .collect(Collectors.toList());
+
+        // Generate token with comprehensive user information
+        String token = jwtService.generateToken(userDetails, user.getId(), user.getPrimaryTenant().getId());
+
+        // Get available companies for the user
+        Set<Long> companyIds = userCompanyRoleRepository.findAllCompanyIdsByUserId(user.getId());
 
         // Create the auth response
         return AuthResponse.builder()
@@ -86,9 +95,13 @@ public class AuthServiceImpl implements AuthService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .primaryTenantId(user.getPrimaryTenant().getId())
                 .primaryTenantName(user.getPrimaryTenant().getName())
                 .roles(roles)
+                .permissions(permissions)
+                .companyIds(companyIds)
                 .build();
     }
 

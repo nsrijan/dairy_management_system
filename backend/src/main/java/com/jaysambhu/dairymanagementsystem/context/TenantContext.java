@@ -9,6 +9,11 @@ public class TenantContext {
 
     private static final ThreadLocal<Long> CURRENT_TENANT = new ThreadLocal<>();
 
+    /**
+     * Special value to indicate super admin context (no tenant scoping)
+     */
+    public static final Long SUPER_ADMIN_CONTEXT = -1L;
+
     private TenantContext() {
         // Private constructor to prevent instantiation
     }
@@ -29,6 +34,16 @@ public class TenantContext {
      */
     public static Long getCurrentTenant() {
         return CURRENT_TENANT.get();
+    }
+
+    /**
+     * Check if the current context is for super admin (no tenant scoping)
+     *
+     * @return true if super admin context, false otherwise
+     */
+    public static boolean isSuperAdmin() {
+        Long currentTenant = getCurrentTenant();
+        return currentTenant != null && currentTenant.equals(SUPER_ADMIN_CONTEXT);
     }
 
     /**

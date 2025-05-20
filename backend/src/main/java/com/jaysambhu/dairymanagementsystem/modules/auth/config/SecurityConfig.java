@@ -53,18 +53,20 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/v1/auth/login")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/v1/auth/validate")).permitAll()
-
-                        // API documentation
-                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui/**")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui.html")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api-docs/**")).permitAll()
-
-                        // Actuator endpoints (health checks, etc.)
-                        .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/validate",
+                                "/api/v1/test/public",
+                                "/api/v1/tenant-test/debug",
+                                "/api/v1/tenant-test/user-debug/**",
+                                "/api/v1/tenant-test/password-debug/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**",
+                                "/actuator/**")
+                        .permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated())

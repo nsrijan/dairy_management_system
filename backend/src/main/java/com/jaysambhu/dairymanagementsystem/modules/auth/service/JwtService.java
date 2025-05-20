@@ -6,14 +6,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service for JWT token operations, including generation, validation, and
@@ -49,6 +53,38 @@ public class JwtService {
     }
 
     /**
+     * Extract the user ID from a JWT token
+     *
+     * @param token The JWT token
+     * @return The user ID
+     */
+    public Long extractUserId(String token) {
+        return Long.valueOf(extractClaim(token, claims -> claims.get("userId", String.class)));
+    }
+
+    /**
+     * Extract the roles from a JWT token
+     *
+     * @param token The JWT token
+     * @return List of roles
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        return extractClaim(token, claims -> claims.get("roles", List.class));
+    }
+
+    /**
+     * Extract the permissions from a JWT token
+     *
+     * @param token The JWT token
+     * @return List of permissions
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> extractPermissions(String token) {
+        return extractClaim(token, claims -> claims.get("permissions", List.class));
+    }
+
+    /**
      * Generate a token for a user with no extra claims
      *
      * @param userDetails The user details
@@ -68,6 +104,29 @@ public class JwtService {
     public String generateToken(UserDetails userDetails, Long tenantId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("tenantId", tenantId.toString());
+        return generateToken(claims, userDetails);
+    }
+
+    /**
+     * Generate a token for a user with comprehensive information
+     *
+     * @param userDetails The user details
+     * @param userId      The user ID
+     * @param tenantId    The tenant ID
+     * @return The generated JWT token
+     */
+    public String generateToken(UserDetails userDetails, Long userId, Long tenantId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId.toString());
+        claims.put("tenantId", tenantId.toString());
+
+        // Extract roles and permissions from authorities
+        List<String> roles = extractRolesFromAuthorities(userDetails.getAuthorities());
+        List<String> permissions = extractPermissionsFromAuthorities(userDetails.getAuthorities());
+
+        claims.put("roles", roles);
+        claims.put("permissions", permissions);
+
         return generateToken(claims, userDetails);
     }
 
@@ -156,5 +215,32 @@ public class JwtService {
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * Extract role authorities from the collection of GrantedAuthority objects
+     * 
+     * @param authorities The collection of GrantedAuthority objects
+     * @return List of role names
+     */
+    private List<String> extractRolesFromAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Extract permission authorities from the collection of GrantedAuthority
+     * objects
+     * 
+     * @param authorities The collection of GrantedAuthority objects
+     * @return List of permission names
+     */
+    private List<String> extractPermissionsFromAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("PERMISSION_"))
+                .collect(Collectors.toList());
     }
 }

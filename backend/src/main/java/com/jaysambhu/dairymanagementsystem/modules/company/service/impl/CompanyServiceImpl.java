@@ -1,6 +1,7 @@
 package com.jaysambhu.dairymanagementsystem.modules.company.service.impl;
 
 import com.jaysambhu.dairymanagementsystem.common.exception.BadRequestException;
+import com.jaysambhu.dairymanagementsystem.common.service.AbstractTenantAwareService;
 import com.jaysambhu.dairymanagementsystem.context.TenantContext;
 import com.jaysambhu.dairymanagementsystem.modules.company.dto.CompanyDto;
 import com.jaysambhu.dairymanagementsystem.modules.company.exception.CompanyNotFoundException;
@@ -17,12 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CompanyServiceImpl implements CompanyService {
+public class CompanyServiceImpl extends AbstractTenantAwareService implements CompanyService {
 
     private final CompanyRepository companyRepository;
     private final TenantService tenantService;
@@ -31,6 +33,12 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional
     public CompanyDto createCompany(CompanyDto companyDto) {
         Long tenantId = TenantContext.getCurrentTenant();
+
+        // Super admin context is not allowed for company creation
+        // as companies must belong to a specific tenant
+        if (TenantContext.isSuperAdmin()) {
+            throw new BadRequestException("Cannot create company in super admin context - tenant must be specified");
+        }
 
         // Check if company with same name already exists for this tenant
         if (companyRepository.existsByNameAndTenantId(companyDto.getName(), tenantId)) {
@@ -56,16 +64,19 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional
     public CompanyDto updateCompany(Long id, CompanyDto companyDto) {
-        Long tenantId = TenantContext.getCurrentTenant();
-
-        Company company = companyRepository.findByIdAndTenantId(id, tenantId)
+        // Find company with or without tenant filtering
+        Company company = findCompanyById(id)
                 .orElseThrow(() -> new CompanyNotFoundException(id));
 
-        // Check if updated name conflicts with another company
-        if (!company.getName().equals(companyDto.getName()) &&
-                companyRepository.existsByNameAndTenantId(companyDto.getName(), tenantId)) {
-            throw new BadRequestException(
-                    "Company with name '" + companyDto.getName() + "' already exists for this tenant");
+        if (!TenantContext.isSuperAdmin()) {
+            Long tenantId = TenantContext.getCurrentTenant();
+
+            // Check if updated name conflicts with another company in this tenant
+            if (!company.getName().equals(companyDto.getName()) &&
+                    companyRepository.existsByNameAndTenantId(companyDto.getName(), tenantId)) {
+                throw new BadRequestException(
+                        "Company with name '" + companyDto.getName() + "' already exists for this tenant");
+            }
         }
 
         company.setName(companyDto.getName());
@@ -73,7 +84,7 @@ public class CompanyServiceImpl implements CompanyService {
         company.setActive(companyDto.isActive());
 
         Company updatedCompany = companyRepository.save(company);
-        log.info("Updated company: {} for tenant: {}", updatedCompany.getName(), tenantId);
+        log.info("Updated company: {} with ID: {}", updatedCompany.getName(), id);
 
         return mapToDto(updatedCompany);
     }
@@ -81,9 +92,9 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional(readOnly = true)
     public List<CompanyDto> getCompaniesByTenant() {
-        Long tenantId = TenantContext.getCurrentTenant();
-
-        return companyRepository.findByTenantId(tenantId).stream()
+        return findAllTenantAware(
+                tenantId -> companyRepository.findByTenantId(tenantId),
+                companyRepository::findAll).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -91,18 +102,16 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional(readOnly = true)
     public Page<CompanyDto> getCompaniesByTenant(Pageable pageable) {
-        Long tenantId = TenantContext.getCurrentTenant();
-
-        return companyRepository.findByTenantId(tenantId, pageable)
-                .map(this::mapToDto);
+        return findAllTenantAware(
+                pageable,
+                tenantId -> companyRepository.findByTenantId(tenantId, pageable),
+                companyRepository::findAll).map(this::mapToDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public CompanyDto getCompanyById(Long id) {
-        Long tenantId = TenantContext.getCurrentTenant();
-
-        Company company = companyRepository.findByIdAndTenantId(id, tenantId)
+        Company company = findCompanyById(id)
                 .orElseThrow(() -> new CompanyNotFoundException(id));
 
         return mapToDto(company);
@@ -111,23 +120,41 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional
     public void deleteCompany(Long id) {
-        Long tenantId = TenantContext.getCurrentTenant();
-
-        Company company = companyRepository.findByIdAndTenantId(id, tenantId)
+        Company company = findCompanyById(id)
                 .orElseThrow(() -> new CompanyNotFoundException(id));
 
         companyRepository.delete(company);
-        log.info("Deleted company with ID: {} for tenant: {}", id, tenantId);
+        log.info("Deleted company with ID: {}", id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CompanyDto> searchCompaniesByName(String name) {
-        Long tenantId = TenantContext.getCurrentTenant();
+        if (TenantContext.isSuperAdmin()) {
+            // For super admin, search across all tenants
+            return companyRepository.findAll().stream()
+                    .filter(company -> company.getName().toLowerCase().contains(name.toLowerCase()))
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+        } else {
+            Long tenantId = TenantContext.getCurrentTenant();
+            return companyRepository.findByNameContainingIgnoreCaseAndTenantId(name, tenantId).stream()
+                    .map(this::mapToDto)
+                    .collect(Collectors.toList());
+        }
+    }
 
-        return companyRepository.findByNameContainingIgnoreCaseAndTenantId(name, tenantId).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    /**
+     * Find company by ID with tenant-aware logic
+     */
+    private Optional<Company> findCompanyById(Long id) {
+        return findByIdTenantAware(
+                id,
+                companyRepository,
+                companyId -> {
+                    Long tenantId = TenantContext.getCurrentTenant();
+                    return companyRepository.findByIdAndTenantId(companyId, tenantId);
+                });
     }
 
     private CompanyDto mapToDto(Company company) {

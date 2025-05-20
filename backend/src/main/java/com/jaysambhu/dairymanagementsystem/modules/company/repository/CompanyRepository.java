@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link Company} entity.
+ */
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
@@ -55,4 +58,12 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * @return true if a company exists, false otherwise
      */
     boolean existsByNameAndTenantId(String name, Long tenantId);
+
+    /**
+     * Find a company by its name.
+     * 
+     * @param name the company name
+     * @return an Optional containing the company if found
+     */
+    Optional<Company> findByName(String name);
 }

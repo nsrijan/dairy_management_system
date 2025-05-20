@@ -2,6 +2,7 @@ package com.jaysambhu.dairymanagementsystem.modules.user.repository;
 
 import com.jaysambhu.dairymanagementsystem.modules.user.model.UserCompanyRole;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -96,4 +97,27 @@ public interface UserCompanyRoleRepository extends JpaRepository<UserCompanyRole
      */
     @Query("SELECT DISTINCT ucr.company.id FROM UserCompanyRole ucr WHERE ucr.user.id = :userId AND ucr.isActive = true")
     Set<Long> findAllCompanyIdsByUserId(@Param("userId") Long userId);
+
+    /**
+     * Delete all user-company-role assignments for a specific user.
+     *
+     * @param userId The user ID
+     * @return The number of records deleted
+     */
+    @Modifying
+    @Query("DELETE FROM UserCompanyRole ucr WHERE ucr.user.id = :userId")
+    int deleteByUserId(@Param("userId") Long userId);
+
+    /**
+     * Delete a specific user-company-role assignment.
+     *
+     * @param userId    The user ID
+     * @param companyId The company ID
+     * @param roleId    The role ID
+     * @return The number of records deleted (0 or 1)
+     */
+    @Modifying
+    @Query("DELETE FROM UserCompanyRole ucr WHERE ucr.user.id = :userId AND ucr.company.id = :companyId AND ucr.role.id = :roleId")
+    int deleteByUserIdAndCompanyIdAndRoleId(@Param("userId") Long userId, @Param("companyId") Long companyId,
+            @Param("roleId") Long roleId);
 }

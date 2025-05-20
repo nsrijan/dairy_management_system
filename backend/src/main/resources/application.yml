@@ -62,7 +62,7 @@ server:
 app:
   domain: localhost
   tenant:
-    default-tenant: master
+    default-tenant: system
     reserved-subdomains:
       - www
       - admin

@@ -34,10 +34,17 @@ public class SubdomainTenantResolver {
      * Resolves the tenant from the HTTP request's host header.
      * 
      * @param request The HTTP request
-     * @return The resolved tenant ID
+     * @return The resolved tenant ID or SUPER_ADMIN_CONTEXT for main domain
      */
     public Long resolveTenantFromRequest(HttpServletRequest request) {
         String host = request.getServerName();
+
+        // Check if this is the main domain (no subdomain)
+        if (isMainDomain(host)) {
+            log.debug("Request to main domain: {}, setting super admin context", host);
+            return TenantContext.SUPER_ADMIN_CONTEXT; // Skip tenant resolution for main domain
+        }
+
         String subdomain = extractSubdomain(host);
 
         if (!StringUtils.hasText(subdomain) || reservedSubdomains.contains(subdomain)) {
@@ -59,20 +66,46 @@ public class SubdomainTenantResolver {
     }
 
     /**
+     * Check if the host is the main domain with no subdomain
+     * 
+     * @param host The hostname
+     * @return true if this is the main domain, false otherwise
+     */
+    private boolean isMainDomain(String host) {
+        // Remove any port information first
+        if (host.contains(":")) {
+            host = host.split(":")[0];
+        }
+
+        // For development and testing, treat only exact "localhost" as main domain
+        // But not subdomains like "test.localhost"
+        if (host.equals("localhost")) {
+            log.debug("Treating localhost as main domain for super admin context");
+            return true;
+        }
+
+        return host.equals(domain);
+    }
+
+    /**
      * Extract the subdomain from a hostname.
      * 
      * @param host The hostname (e.g., "test.example.com")
      * @return The subdomain (e.g., "test")
      */
     private String extractSubdomain(String host) {
-        // For localhost with port, handle separately
-        if (host.startsWith("localhost")) {
-            return "";
-        }
-
         // Remove any port information
         if (host.contains(":")) {
             host = host.split(":")[0];
+        }
+
+        // Handle localhost subdomains (e.g., "test.localhost")
+        if (host.endsWith(".localhost")) {
+            String[] parts = host.split("\\.");
+            if (parts.length > 1) {
+                log.debug("Extracted subdomain from localhost: {}", parts[0]);
+                return parts[0];
+            }
         }
 
         // Remove the domain part
