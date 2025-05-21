@@ -30,6 +30,9 @@ public class SubdomainTenantResolver {
     @Value("${app.tenant.reserved:www,api,admin,app}")
     private List<String> reservedSubdomains;
 
+    @Value("${app.development-mode:false}")
+    private boolean developmentMode;
+
     /**
      * Resolves the tenant from the HTTP request's host header.
      * 
@@ -38,6 +41,21 @@ public class SubdomainTenantResolver {
      */
     public Long resolveTenantFromRequest(HttpServletRequest request) {
         String host = request.getServerName();
+
+        // Check for development mode header override for subdomain testing
+        String tenantSubdomainHeader = request.getHeader("X-Tenant-Subdomain");
+        if (developmentMode && StringUtils.hasText(tenantSubdomainHeader)) {
+            log.debug("Using X-Tenant-Subdomain header in development mode: {}", tenantSubdomainHeader);
+
+            // If this is a valid tenant subdomain, use it
+            try {
+                Tenant tenant = tenantService.findActiveBySlug(tenantSubdomainHeader);
+                return tenant.getId();
+            } catch (Exception e) {
+                log.warn("Invalid tenant subdomain from header: {}", tenantSubdomainHeader);
+                // Continue with normal resolution
+            }
+        }
 
         // Check if this is the main domain (no subdomain)
         if (isMainDomain(host)) {

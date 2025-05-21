@@ -61,6 +61,7 @@ server:
 # Application Configuration
 app:
   domain: localhost
+  development-mode: true  # Enable development mode for local testing
   tenant:
     default-tenant: system
     reserved-subdomains:
