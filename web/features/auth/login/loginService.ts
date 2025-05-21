@@ -5,6 +5,7 @@
 interface LoginRequest {
     usernameOrEmail: string;
     password: string;
+    subdomain?: string; // Optional subdomain for tenant-specific login
 }
 
 interface LoginResponse {
@@ -15,6 +16,30 @@ interface LoginResponse {
         email: string;
         role: string;
     };
+}
+
+/**
+ * Response format from the Spring Boot backend
+ */
+interface BackendAuthResponse {
+    success: boolean;
+    message: string;
+    data: {
+        accessToken: string;
+        tokenType: string;
+        expiresIn: number;
+        userId: number;
+        username: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        primaryTenantId: number;
+        primaryTenantName: string;
+        roles: string[];
+        permissions: string[];
+        companyIds: number[];
+    };
+    timestamp: string;
 }
 
 /**
@@ -35,12 +60,23 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
             password: credentials.password
         }));
 
+        // Set headers for the request
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+
+        // Add Host header for tenant-specific login when in development
+        if (credentials.subdomain) {
+            console.log(`Adding subdomain context: ${credentials.subdomain}`);
+            // In production, this would be handled by the actual subdomain
+            // For local development, we need to simulate it with a custom header
+            headers['X-Tenant-Subdomain'] = credentials.subdomain;
+        }
+
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers,
             // Use usernameOrEmail field name to match backend expectation
             body: JSON.stringify({
                 usernameOrEmail: credentials.usernameOrEmail,
@@ -60,7 +96,7 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
             throw new Error('The server returned an empty response');
         }
 
-        let data;
+        let data: BackendAuthResponse;
         try {
             // Try to parse the response as JSON
             data = JSON.parse(responseText);
@@ -69,11 +105,23 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
             throw new Error('The server returned an invalid response format. Please contact support.');
         }
 
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
             throw new Error(data.message || 'Login failed');
         }
 
-        return data;
+        // Map the backend response to our expected format
+        const authResponse: LoginResponse = {
+            token: data.data.accessToken,
+            user: {
+                id: data.data.userId.toString(),
+                name: `${data.data.firstName} ${data.data.lastName}`.trim(),
+                email: data.data.email,
+                // Convert backend role format (ROLE_SYSTEM_ADMIN) to our format (SUPER_ADMIN)
+                role: mapRoleFromBackend(data.data.roles[0])
+            }
+        };
+
+        return authResponse;
     } catch (error: any) {
         console.error('Login error:', error);
 
@@ -88,6 +136,24 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
 
         throw error;
     }
+}
+
+/**
+ * Maps backend role format to frontend role format
+ * @param backendRole The role from backend (e.g., ROLE_SYSTEM_ADMIN)
+ * @returns Frontend role (e.g., SUPER_ADMIN)
+ */
+function mapRoleFromBackend(backendRole: string): string {
+    const roleMap: Record<string, string> = {
+        'ROLE_SYSTEM_ADMIN': 'SUPER_ADMIN',
+        'ROLE_TENANT_ADMIN': 'TENANT_MANAGER',
+        'ROLE_COMPANY_ADMIN': 'COMPANY_ADMIN',
+        'ROLE_MANAGER': 'MANAGER',
+        'ROLE_EMPLOYEE': 'EMPLOYEE',
+        'ROLE_USER': 'USER'
+    };
+
+    return roleMap[backendRole] || 'USER';
 }
 
 /**
