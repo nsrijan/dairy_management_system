@@ -13,10 +13,14 @@ This document outlines the planned development sequence for the Dairy Management
   - [x] TenantContext
   - [x] SubdomainTenantResolver
   - [x] TenantFilter
+- [x] Feature-based modular architecture restructuring
+  - [x] Core vs. Features separation
+  - [x] Multi-business domain support
+  - [x] Package reorganization
 
-## Module Implementation Status
+## Core Module Implementation Status
 
-### Tenant Module
+### Core: Tenant Module
 - [x] Tenant entity and repository
 - [x] Tenant service interface and implementation
 - [x] Tenant controller
@@ -24,7 +28,7 @@ This document outlines the planned development sequence for the Dairy Management
 - [x] Exception classes
 - [ ] Tenant settings and configuration
 
-### Company Module
+### Core: Company Module
 - [x] Company entity and repository
 - [x] Company DTO and exception classes
 - [x] Company service interface and implementation
@@ -32,7 +36,7 @@ This document outlines the planned development sequence for the Dairy Management
 - [x] Company user controller
 - [ ] Company settings and configuration
 
-### User Module
+### Core: User Module
 - [ ] Role entity and enum
 - [ ] Permission entity and enum
 - [ ] User entity and repository
@@ -46,7 +50,23 @@ This document outlines the planned development sequence for the Dairy Management
   - [ ] User profile controller
   - [ ] User admin controller
 
-### Supplier Module
+### Core: Subscription Module
+- [ ] Subscription plans
+- [ ] Billing integration
+- [ ] Usage tracking
+- [ ] Plan limitations enforcement
+
+### Core: Feature Toggle Module
+- [ ] Feature flag entity and repository
+- [ ] Toggle service
+- [ ] Admin interface for toggle management
+- [ ] Client-side feature detection
+
+## Module Implementation Status
+
+### Dairy Module Features
+
+#### Dairy: Supplier Management
 - [ ] Supplier entity and repository
 - [ ] Supplier types (regular, farmer)
 - [ ] Supplier DTO and mappers
@@ -54,7 +74,13 @@ This document outlines the planned development sequence for the Dairy Management
 - [ ] Supplier controller
 - [ ] Supplier registration workflow
 
-### Inventory Module
+#### Dairy: Milk Collection
+- [ ] Collection center management
+- [ ] Milk quality testing
+- [ ] Farmer payment calculation
+- [ ] Collection reports
+
+#### Dairy: Inventory Management
 - [ ] Product entity and repository
 - [ ] Category entity and repository
 - [ ] Inventory transaction entity
@@ -62,7 +88,7 @@ This document outlines the planned development sequence for the Dairy Management
 - [ ] Inventory service
 - [ ] Inventory controllers
 
-### Production Module
+#### Dairy: Production
 - [ ] Production batch entity
 - [ ] Production process tracking
 - [ ] Raw material consumption
@@ -70,7 +96,7 @@ This document outlines the planned development sequence for the Dairy Management
 - [ ] Production service
 - [ ] Production controllers
 
-### Sales Module
+#### Dairy: Sales
 - [ ] Customer entity and repository
 - [ ] Order entity and line items
 - [ ] Invoice generation
@@ -78,14 +104,26 @@ This document outlines the planned development sequence for the Dairy Management
 - [ ] Sales service
 - [ ] Sales controllers
 
-### Distribution Module
+#### Dairy: Distribution
 - [ ] Delivery route entity
 - [ ] Delivery schedule entity
 - [ ] Delivery status tracking
 - [ ] Distribution service
 - [ ] Distribution controllers
 
-### Reporting Module
+### Pottery Module Features (Placeholder)
+- [ ] Raw materials management
+- [ ] Production tracking
+- [ ] Kiln scheduling
+- [ ] Quality control
+
+### Garments Module Features (Placeholder)
+- [ ] Fabric inventory
+- [ ] Pattern management
+- [ ] Production tracking
+- [ ] Shipment management
+
+## Cross-Domain Reporting
 - [ ] Report templates
 - [ ] Data aggregation services
 - [ ] Report generation service

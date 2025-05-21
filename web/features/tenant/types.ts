@@ -2,11 +2,18 @@
  * Tenant type definitions
  */
 
+export enum ModuleType {
+    DAIRY = 'DAIRY',
+    POTTERY = 'POTTERY',
+    GARMENTS = 'GARMENTS'
+}
+
 export interface Tenant {
     id: string;
     name: string;
     subdomain: string;
     active: boolean;
+    moduleType: ModuleType;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -14,12 +21,14 @@ export interface Tenant {
 export interface TenantCreateRequest {
     name: string;
     subdomain: string;
+    moduleType: ModuleType;
 }
 
 export interface TenantUpdateRequest {
     name?: string;
     subdomain?: string;
     active?: boolean;
+    moduleType?: ModuleType;
 }
 
 export interface TenantResponse {
@@ -27,6 +36,7 @@ export interface TenantResponse {
     name: string;
     subdomain: string;
     active: boolean;
+    moduleType: ModuleType;
     createdAt: string;
     updatedAt: string;
 }
