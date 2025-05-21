@@ -24,15 +24,10 @@ export default function LoginPage() {
   // Check if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      // Redirect tenant managers and super admins to admin dashboard
-      if ((user?.role === 'TENANT_MANAGER' || user?.role === 'SUPER_ADMIN') && !subdomain) {
-        router.push('/admin');
-      } else {
-        // Other users go to normal dashboard
-        router.push('/dashboard');
-      }
+      // Redirect all users to dashboard regardless of role
+      router.push('/dashboard');
     }
-  }, [isAuthenticated, router, user, subdomain]);
+  }, [isAuthenticated, router]);
 
   // Handle navigation after successful login
   useEffect(() => {
@@ -126,22 +121,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
-            {subdomain
-              ? `Log in to ${subdomain} tenant`
-              : 'Log in as Tenant Manager'}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-md border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden bg-white dark:bg-gray-800">
+        <CardHeader className="space-y-1 px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/80">
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Welcome Back</CardTitle>
+          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+            {!subdomain ? 'Enter your details to log in to your tenant' : 'Enter your details to log in to the main domain'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 py-5">
           <CurrentTenantInfo />
 
           <form className="space-y-4" onSubmit={handleSubmit} method="POST">
             <div className="space-y-2">
-              <Label htmlFor="usernameOrEmail">Username or Email</Label>
+              <Label htmlFor="usernameOrEmail" className="text-gray-700 dark:text-gray-300">Username or Email</Label>
               <Input
                 id="usernameOrEmail"
                 name="usernameOrEmail"
@@ -150,14 +143,15 @@ export default function LoginPage() {
                 autoComplete="username"
                 required
                 disabled={loginSuccess}
+                className="h-10 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm focus-visible:ring-1 focus-visible:ring-gray-300 dark:focus-visible:ring-gray-600"
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-primary hover:underline"
+                  className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
                 >
                   Forgot password?
                 </Link>
@@ -170,49 +164,53 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 disabled={loginSuccess}
+                className="h-10 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm focus-visible:ring-1 focus-visible:ring-gray-300 dark:focus-visible:ring-gray-600"
               />
             </div>
 
             {error && (
-              <Alert variant="destructive" className="text-sm">
+              <Alert variant="destructive" className="text-sm rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
             {loginSuccess && (
-              <Alert className="text-sm bg-green-50 text-green-700 border-green-200">
+              <Alert className="text-sm bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800 rounded-lg shadow-sm">
                 <AlertDescription>Login successful! Redirecting...</AlertDescription>
               </Alert>
             )}
 
             {debugInfo && (
-              <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-100 rounded whitespace-pre-line">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm whitespace-pre-line">
                 {debugInfo}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading || loginSuccess}>
+            <Button
+              type="submit"
+              className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-colors"
+              disabled={loading || loginSuccess}>
               {loading ? 'Signing in...' : loginSuccess ? 'Redirecting...' : 'Sign in'}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col">
-          <div className="text-sm text-center text-muted-foreground">
+        <CardFooter className="flex flex-col border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+          <div className="text-sm text-center text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
-            <Link href="/register" className="text-primary font-medium hover:underline">
+            <Link href="/register" className="text-indigo-600 dark:text-indigo-400 font-medium hover:text-indigo-700 dark:hover:text-indigo-300">
               Create account
             </Link>
           </div>
 
           {/* Development helper links */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="border-t border-gray-200 mt-4 pt-4 text-xs text-gray-500 w-full">
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 text-xs text-gray-500 dark:text-gray-400 w-full">
               <p className="mb-2 font-medium">Development Testing:</p>
               <div className="flex flex-col space-y-1">
-                <a href="http://localhost:3000" className="underline hover:text-primary" target="_blank" rel="noopener noreferrer">
+                <a href="http://localhost:3000" className="underline hover:text-indigo-600 dark:hover:text-indigo-400" target="_blank" rel="noopener noreferrer">
                   Tenant Manager Login (localhost)
                 </a>
-                <a href="http://test.localhost:3000" className="underline hover:text-primary" target="_blank" rel="noopener noreferrer">
+                <a href="http://test.localhost:3000" className="underline hover:text-indigo-600 dark:hover:text-indigo-400" target="_blank" rel="noopener noreferrer">
                   Test Tenant Login (test.localhost)
                 </a>
                 <p className="mt-1 text-xs italic">

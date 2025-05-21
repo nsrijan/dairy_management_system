@@ -10,15 +10,19 @@ export default function TenantsPage() {
 
     return (
         <>
-            <div className="flex justify-between items-center mb-6">
-                <p className="text-gray-600">Manage all your tenant organizations from here.</p>
-                <Button onClick={() => router.push('/admin/tenants/new')} className="bg-indigo-600 hover:bg-indigo-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Tenant
-                </Button>
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Tenant Management</h1>
+                <p className="text-gray-600 dark:text-gray-400">Create and manage tenants in the system.</p>
             </div>
 
             <TenantsList />
+
+            <Button
+                onClick={() => router.push('/admin/tenants/new')}
+                className="fixed right-6 bottom-6 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-full h-12 w-12 flex items-center justify-center"
+            >
+                <Plus className="h-6 w-6" />
+            </Button>
         </>
     );
 } 

@@ -8,21 +8,24 @@ export async function middleware(request: NextRequest) {
   const authToken = request.cookies.get('auth_token')?.value;
   const isAuthenticated = !!authToken;
 
-  console.log('Token found:', isAuthenticated);
+  console.log('Auth token found:', !!authToken, 'Path:', request.nextUrl.pathname);
 
   const isLoginPage = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/auth/login';
   const isRegisterPage = request.nextUrl.pathname === '/register' || request.nextUrl.pathname === '/auth/register';
   const isPublicApiRoute = request.nextUrl.pathname.startsWith('/api/public');
   const isRootPath = request.nextUrl.pathname === '/';
+  const isDashboardPath = request.nextUrl.pathname === '/dashboard' || request.nextUrl.pathname.startsWith('/dashboard/');
+  const isAdminPath = request.nextUrl.pathname === '/admin' || request.nextUrl.pathname.startsWith('/admin/');
 
   // Don't redirect public API routes
   if (isPublicApiRoute) {
+    console.log('Public API route - no redirection');
     return NextResponse.next();
   }
 
   // Redirect to dashboard if logged in and trying to access login/register page
   if ((isLoginPage || isRegisterPage) && isAuthenticated) {
-    console.log('User authenticated, redirecting to dashboard');
+    console.log('User authenticated on login/register page, redirecting to dashboard');
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -34,7 +37,8 @@ export async function middleware(request: NextRequest) {
 
   // Redirect to login if not logged in and not on login/register page or public API
   if (!isAuthenticated && !isLoginPage && !isRegisterPage && !isPublicApiRoute) {
-    console.log('Protected route accessed without authentication');
+    console.log('Protected route accessed without authentication, redirecting to login');
+    console.log('Current path:', request.nextUrl.pathname, 'isDashboard:', isDashboardPath, 'isAdmin:', isAdminPath);
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
