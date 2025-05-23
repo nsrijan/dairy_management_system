@@ -64,6 +64,9 @@ public class TenantServiceImpl implements TenantService {
                 .name(tenantDto.getName())
                 .slug(tenantDto.getSlug())
                 .isActive(tenantDto.isActive())
+                .moduleType(tenantDto.getModuleType())
+                .currency(tenantDto.getCurrency())
+                .timezone(tenantDto.getTimezone())
                 .build();
 
         Tenant savedTenant = tenantRepository.save(tenant);
@@ -84,6 +87,9 @@ public class TenantServiceImpl implements TenantService {
         existingTenant.setName(tenantDto.getName());
         existingTenant.setSlug(tenantDto.getSlug());
         existingTenant.setActive(tenantDto.isActive());
+        existingTenant.setModuleType(tenantDto.getModuleType());
+        existingTenant.setCurrency(tenantDto.getCurrency());
+        existingTenant.setTimezone(tenantDto.getTimezone());
 
         Tenant updatedTenant = tenantRepository.save(existingTenant);
         return mapToDto(updatedTenant);
@@ -112,15 +118,31 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public TenantDto mapToDto(Tenant tenant) {
-        return TenantDto.builder()
+        TenantDto dto = TenantDto.builder()
                 .id(tenant.getId())
                 .name(tenant.getName())
                 .slug(tenant.getSlug())
                 .isActive(tenant.isActive())
+                .moduleType(tenant.getModuleType())
+                .currency(tenant.getCurrency())
+                .timezone(tenant.getTimezone())
                 .createdAt(tenant.getCreatedAt())
                 .createdBy(tenant.getCreatedBy())
                 .updatedAt(tenant.getUpdatedAt())
                 .updatedBy(tenant.getUpdatedBy())
                 .build();
+
+        // Set subdomain to match slug for frontend compatibility
+        dto.setSubdomain(tenant.getSlug());
+        return dto;
+    }
+
+    @Override
+    @Transactional
+    public TenantDto updateStatus(Long id, boolean active) {
+        Tenant tenant = findById(id);
+        tenant.setActive(active);
+        Tenant updatedTenant = tenantRepository.save(tenant);
+        return mapToDto(updatedTenant);
     }
 }

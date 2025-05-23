@@ -2,6 +2,8 @@ package com.jaysambhu.modulynx.core.tenant.controller;
 
 import com.jaysambhu.modulynx.common.response.GlobalApiResponse;
 import com.jaysambhu.modulynx.core.tenant.dto.TenantDto;
+import com.jaysambhu.modulynx.core.tenant.model.Tenant;
+import com.jaysambhu.modulynx.core.tenant.repository.TenantRepository;
 import com.jaysambhu.modulynx.core.tenant.service.TenantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +20,10 @@ import java.util.List;
 public class TenantController {
 
     private final TenantService tenantService;
+    private final TenantRepository tenantRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('TENANT_ADMIN')")
     public ResponseEntity<GlobalApiResponse<List<TenantDto>>> getAllTenants() {
         List<TenantDto> tenants = tenantService.findAll();
         return ResponseEntity.ok(GlobalApiResponse.<List<TenantDto>>builder()
@@ -31,7 +34,7 @@ public class TenantController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('TENANT_ADMIN')")
     public ResponseEntity<GlobalApiResponse<TenantDto>> getTenantById(@PathVariable Long id) {
         return ResponseEntity.ok(GlobalApiResponse.<TenantDto>builder()
                 .success(true)
@@ -41,7 +44,7 @@ public class TenantController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<GlobalApiResponse<TenantDto>> createTenant(@Valid @RequestBody TenantDto tenantDto) {
         TenantDto createdTenant = tenantService.create(tenantDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(GlobalApiResponse.<TenantDto>builder()
@@ -52,7 +55,7 @@ public class TenantController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('TENANT_ADMIN')")
     public ResponseEntity<GlobalApiResponse<TenantDto>> updateTenant(
             @PathVariable Long id, @Valid @RequestBody TenantDto tenantDto) {
         TenantDto updatedTenant = tenantService.update(id, tenantDto);
@@ -64,7 +67,7 @@ public class TenantController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<GlobalApiResponse<Void>> deleteTenant(@PathVariable Long id) {
         tenantService.delete(id);
         return ResponseEntity.ok(GlobalApiResponse.<Void>builder()
@@ -80,5 +83,30 @@ public class TenantController {
                 .message("Current tenant retrieved successfully")
                 .data(tenantService.getCurrentTenant())
                 .build());
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('TENANT_ADMIN')")
+    public ResponseEntity<GlobalApiResponse<TenantDto>> changeTenantStatus(
+            @PathVariable Long id, @RequestBody StatusUpdateRequest request) {
+        TenantDto updatedTenant = tenantService.updateStatus(id, request.isActive());
+
+        return ResponseEntity.ok(GlobalApiResponse.<TenantDto>builder()
+                .success(true)
+                .message("Tenant status updated successfully")
+                .data(updatedTenant)
+                .build());
+    }
+
+    static class StatusUpdateRequest {
+        private boolean active;
+
+        public boolean isActive() {
+            return active;
+        }
+
+        public void setActive(boolean active) {
+            this.active = active;
+        }
     }
 }

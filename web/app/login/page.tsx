@@ -24,10 +24,20 @@ export default function LoginPage() {
   // Check if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      // Redirect all users to dashboard regardless of role
-      router.push('/dashboard');
+      // Check if we're in development mode and on localhost (no subdomain)
+      const isDev = process.env.NODE_ENV === 'development';
+      const isLocalhost = !subdomain;
+      const isManagerRole = user?.role === 'TENANT_MANAGER' || user?.role === 'SUPER_ADMIN';
+
+      // In dev mode on localhost, redirect TENANT_MANAGER or SUPER_ADMIN to admin dashboard
+      if (isDev && isLocalhost && isManagerRole) {
+        router.push('/admin');
+      } else {
+        // Default redirect to dashboard
+        router.push('/dashboard');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, subdomain, user]);
 
   // Handle navigation after successful login
   useEffect(() => {

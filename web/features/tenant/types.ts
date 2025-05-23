@@ -14,6 +14,8 @@ export interface Tenant {
     subdomain: string;
     active: boolean;
     moduleType: ModuleType;
+    currency?: string;
+    timezone?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -22,6 +24,8 @@ export interface TenantCreateRequest {
     name: string;
     subdomain: string;
     moduleType: ModuleType;
+    currency: string;
+    timezone: string;
 }
 
 export interface TenantUpdateRequest {
@@ -29,6 +33,8 @@ export interface TenantUpdateRequest {
     subdomain?: string;
     active?: boolean;
     moduleType?: ModuleType;
+    currency?: string;
+    timezone?: string;
 }
 
 export interface TenantResponse {
@@ -37,6 +43,8 @@ export interface TenantResponse {
     subdomain: string;
     active: boolean;
     moduleType: ModuleType;
+    currency?: string;
+    timezone?: string;
     createdAt: string;
     updatedAt: string;
 }

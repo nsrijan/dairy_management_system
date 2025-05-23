@@ -64,15 +64,13 @@ function TenantCard({ tenant, onEdit, onDelete }: TenantCardProps) {
                         <div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">Currency</div>
                             <div className="text-sm font-medium dark:text-gray-300">
-                                {tenant.moduleType === ModuleType.DAIRY ? 'INR' :
-                                    tenant.moduleType === ModuleType.POTTERY ? 'USD' : 'NPR'}
+                                {tenant.currency || 'N/A'}
                             </div>
                         </div>
                         <div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">Timezone</div>
                             <div className="text-sm font-medium dark:text-gray-300">
-                                {tenant.moduleType === ModuleType.DAIRY ? 'Asia/Kolkata' :
-                                    tenant.moduleType === ModuleType.POTTERY ? 'America/New_York' : 'Asia/Kathmandu'}
+                                {tenant.timezone?.replace('Asia/', '') || 'N/A'}
                             </div>
                         </div>
                         <div>

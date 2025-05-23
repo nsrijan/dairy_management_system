@@ -77,4 +77,13 @@ public interface TenantService {
      * @return The mapped tenant DTO
      */
     TenantDto mapToDto(Tenant tenant);
+
+    /**
+     * Update tenant active status
+     * 
+     * @param id     The ID of the tenant to update
+     * @param active The new active status
+     * @return The updated tenant DTO
+     */
+    TenantDto updateStatus(Long id, boolean active);
 }
