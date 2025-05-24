@@ -24,20 +24,14 @@ export default function LoginPage() {
   // Check if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      // Check if we're in development mode and on localhost (no subdomain)
-      const isDev = process.env.NODE_ENV === 'development';
-      const isLocalhost = !subdomain;
-      const isManagerRole = user?.role === 'TENANT_MANAGER' || user?.role === 'SUPER_ADMIN';
-
-      // In dev mode on localhost, redirect TENANT_MANAGER or SUPER_ADMIN to admin dashboard
-      if (isDev && isLocalhost && isManagerRole) {
+      // Check if user is SYSTEM_ADMIN
+      if (user?.role === 'SYSTEM_ADMIN') {
         router.push('/admin');
       } else {
-        // Default redirect to dashboard
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, router, subdomain, user]);
+  }, [isAuthenticated, router, user]);
 
   // Handle navigation after successful login
   useEffect(() => {
@@ -87,7 +81,7 @@ export default function LoginPage() {
       console.log('Login successful, received token:', response.token.substring(0, 15) + '...');
       console.log('User role:', response.user.role);
 
-      const isManagerRole = response.user.role === 'TENANT_MANAGER' || response.user.role === 'SUPER_ADMIN';
+      const isManagerRole = response.user.role === 'TENANT_MANAGER' || response.user.role === 'SYSTEM_ADMIN';
 
       // Check if user is trying to login to tenant subdomain as a tenant manager
       if (subdomain && isManagerRole) {

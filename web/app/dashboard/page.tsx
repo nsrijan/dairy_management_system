@@ -2,14 +2,30 @@
 
 import { useAuth } from '../providers';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login');
+      } else if (user?.role === 'SYSTEM_ADMIN') {
+        // Redirect system admin to admin dashboard
+        router.push('/admin');
+      }
+    }
+  }, [isAuthenticated, isLoading, router, user]);
+
   if (isLoading) {
     return <div className="flex justify-center p-8">Loading...</div>;
+  }
+
+  if (!isAuthenticated || user?.role === 'SYSTEM_ADMIN') {
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -45,8 +61,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* For admin users, show admin dashboard link */}
-        {(user?.role === 'TENANT_MANAGER' || user?.role === 'SUPER_ADMIN') && (
+        {/* For tenant admin users, show admin dashboard link */}
+        {user?.role === 'TENANT_ADMIN' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-lg font-medium mb-4">Admin Access</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">

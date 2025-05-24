@@ -144,16 +144,8 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
  * @returns Frontend role (e.g., SUPER_ADMIN)
  */
 function mapRoleFromBackend(backendRole: string): string {
-    const roleMap: Record<string, string> = {
-        'ROLE_SYSTEM_ADMIN': 'SUPER_ADMIN',
-        'ROLE_TENANT_ADMIN': 'TENANT_MANAGER',
-        'ROLE_COMPANY_ADMIN': 'COMPANY_ADMIN',
-        'ROLE_MANAGER': 'MANAGER',
-        'ROLE_EMPLOYEE': 'EMPLOYEE',
-        'ROLE_USER': 'USER'
-    };
-
-    return roleMap[backendRole] || 'USER';
+    // Remove 'ROLE_' prefix and return the rest
+    return backendRole.replace('ROLE_', '') || 'USER';
 }
 
 /**

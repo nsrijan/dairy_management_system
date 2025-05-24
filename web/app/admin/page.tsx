@@ -13,8 +13,10 @@ export default function AdminPage() {
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             router.push('/login');
-        } else if (!isLoading && isAuthenticated && user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN') {
-            router.push('/dashboard');
+            // } else if (!isLoading && user?.role !== 'SYSTEM_ADMIN') {
+            //     router.push('/dashboard');
+        } else if (!isLoading && isAuthenticated && user?.role == 'SYSTEM_ADMIN') {
+            router.push('/admin');
         }
     }, [isAuthenticated, isLoading, router, user]);
 
@@ -22,7 +24,7 @@ export default function AdminPage() {
         return <div className="flex justify-center p-8">Loading...</div>;
     }
 
-    if (!isAuthenticated || (user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN')) {
+    if (!isAuthenticated || (user?.role !== 'TENANT_MANAGER' && user?.role !== 'SYSTEM_ADMIN')) {
         return null; // Will redirect in useEffect
     }
 

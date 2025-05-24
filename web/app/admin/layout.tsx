@@ -96,7 +96,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (!isLoading) {
             if (!isAuthenticated) {
                 redirect('/login');
-            } else if (user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN') {
+            } else if (user?.role === 'SYSTEM_ADMIN' || user?.role === 'TENANT_MANAGER') {
+                // Allow access to admin dashboard for system admin and tenant manager
+                return;
+            } else {
+                // Redirect other users to their appropriate dashboard
                 redirect('/dashboard');
             }
         }
@@ -122,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return <div className="flex justify-center p-8">Loading...</div>;
     }
 
-    if (!isAuthenticated || (user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN')) {
+    if (!isAuthenticated || (user?.role !== 'SYSTEM_ADMIN' && user?.role !== 'TENANT_MANAGER')) {
         return null; // Will redirect in useEffect
     }
 
