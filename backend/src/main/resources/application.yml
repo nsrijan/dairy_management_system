@@ -1,6 +1,8 @@
 spring:
   application:
-    name: dairymanagementsystem
+    name: modulynx
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: jdbc:postgresql://localhost:5432/dairy_management_system
     username: postgres
@@ -45,7 +47,7 @@ springdoc:
     tagsSorter: alpha
     try-it-out-enabled: true
   show-actuator: true
-  packages-to-scan: com.jaysambhu.dairymanagementsystem
+  packages-to-scan: com.jaysambhu.modulynx
 
 # JWT Configuration
 jwt:
@@ -76,12 +78,12 @@ app:
   admin:
     username: admin
     password: admin@123
-    email: admin@dairymanagementsystem.com
+    email: admin@modulynx.com
 
 # Logging Configuration
 logging:
   level:
-    com.jaysambhu.dairymanagementsystem: DEBUG
+    com.jaysambhu.modulynx: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.flywaydb: INFO 

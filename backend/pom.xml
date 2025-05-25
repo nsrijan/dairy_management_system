@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.jaysambhu</groupId>
-	<artifactId>dairymanagementsystem</artifactId>
+	<artifactId>modulynx</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>dairymanagementsystem</name>
-	<description>Dairy Management App</description>
+	<name>modulynx</name>
+	<description>Modulynx - Multi-Domain SaaS Platform</description>
 	<url/>
 	<licenses>
 		<license/>

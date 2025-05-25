@@ -1,8 +1,8 @@
-# Dairy Management System - Architecture Document
+# Modulynx Platform - Architecture Document
 
 ## System Architecture Overview
 
-The Dairy Management System is built using a multi-tenant, feature-based architecture that allows multiple dairy organizations to operate independently while sharing the same application infrastructure.
+The Modulynx Platform is built using a multi-tenant, feature-based architecture that allows multiple business organizations across different domains to operate independently while sharing the same application infrastructure.
 
 ### Key Architectural Principles
 
@@ -44,30 +44,41 @@ The system uses a subdomain-based approach to identify tenants:
 
 ## Module Structure
 
-The application follows a feature-based structure where each business domain has its own module:
+The application follows a feature-based modular architecture to support multiple business domains:
 
 ```
-src/main/java/com/jaysambhu/dairymanagementsystem/
-├── common/                     # Shared utilities and base classes
-│   ├── audit/                  # Audit configuration
-│   ├── exception/              # Exception handling
-│   └── response/               # Standardized API responses
-├── config/                     # Application-wide configuration
-├── context/                    # Context management (e.g., TenantContext)
-├── modules/                    # Feature modules
-│   ├── tenant/                 # Tenant management module
-│   ├── auth/                   # Authentication module
-│   ├── user/                   # User management module
-│   ├── company/                # Company management module
-│   ├── supplier/               # Supplier management module
-│   └── ...                     # Other business modules
-└── DairyManagementSystemApplication.java
+src/main/java/com/jaysambhu/modulynx/
+├── common/                           # Shared utilities and base classes
+│   ├── audit/                        # Audit configuration
+│   ├── exception/                    # Exception handling
+│   └── response/                     # Standardized API responses
+├── config/                           # Application-wide configuration
+├── context/                          # Context management (e.g., TenantContext)
+├── core/                             # Core functionality shared across domains
+│   ├── user/                         # User management module
+│   ├── auth/                         # Authentication module
+│   ├── tenant/                       # Tenant management module
+│   ├── company/                      # Company management module
+│   ├── subscription/                 # Subscription management
+│   ├── audit/                        # Audit functionality
+│   └── feature-toggle/               # Feature flags and toggles
+├── modules/                          # Business domain modules
+│   ├── dairy/                        # Dairy industry module
+│   │   ├── features/                 # Features within dairy module
+│   │   │   ├── milkcollection/       # Milk collection functionality
+│   │   │   ├── production/           # Dairy production processes
+│   │   │   └── inventory/            # Dairy inventory management
+│   ├── pottery/                      # Pottery industry module
+│   │   └── features/                 # Features within pottery module
+│   └── garments/                     # Garments industry module
+│       └── features/                 # Features within garments module
+└── ModulynxApplication.java
 ```
 
-Each module follows a consistent internal structure:
+Each core module follows a consistent internal structure similar to the modules' features:
 
 ```
-modules/tenant/
+core/user/
 ├── controller/                 # REST controllers
 │   └── admin/                  # Admin-specific controllers
 ├── dto/                        # Data Transfer Objects
@@ -78,6 +89,22 @@ modules/tenant/
 │   └── impl/                   # Service implementations
 └── config/                     # Module-specific configuration
 ```
+
+Each business domain feature follows this structure:
+
+```
+modules/dairy/features/milkcollection/
+├── controller/                 # REST controllers
+├── dto/                        # Data Transfer Objects
+├── exception/                  # Feature-specific exceptions
+├── model/                      # Entity classes
+├── repository/                 # Data access layer
+├── service/                    # Business logic
+│   └── impl/                   # Service implementations
+└── config/                     # Feature-specific configuration
+```
+
+For more detailed information on the feature-based architecture, see [Feature-Based Architecture](feature-based-architecture.md).
 
 ## Entity Design
 

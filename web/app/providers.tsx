@@ -109,12 +109,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('auth_token') || getCookie('auth_token');
 
     if (storedToken) {
+      console.log('Found authentication token in storage');
       setToken(storedToken);
       // Try to get user info from localStorage if available
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Auto-logged in user:', parsedUser.name, 'with role:', parsedUser.role);
+          setUser(parsedUser);
         } catch (e) {
           console.error('Failed to parse stored user', e);
         }

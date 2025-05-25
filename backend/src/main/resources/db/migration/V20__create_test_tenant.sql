@@ -13,7 +13,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO users (id, username, email, password, first_name, last_name, is_active, is_email_verified, 
                  is_phone_verified, user_type, primary_tenant_id, created_at, updated_at, version)
 VALUES (10, 'tenant_user', 'tenant_user@test.com', 
-       '$2a$10$A.dQc2WpgH0w3P7jHiDxYOTcNKTcgKKCXS8yw6Hmx2hyq/GJFNpKu', -- 'password123' hashed 
+       '$2a$12$dQBcRLTehtZFJT9qfUQNKuJm2hN2Yu5O5EEkI.eSFtXMcSYlAWsr6', -- 'password123' hashed 
        'Tenant', 'User', true, true, true, 'INTERNAL', 2, 
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
 ON CONFLICT (id) DO NOTHING;
