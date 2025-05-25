@@ -1,8 +1,6 @@
 'use client';
 
-import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import TenantForm from '@/features/tenant/components/TenantForm';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,26 +12,8 @@ interface EditTenantPageProps {
 }
 
 export default function EditTenantPage({ params }: EditTenantPageProps) {
-    const { isAuthenticated, user, isLoading } = useAuth();
     const router = useRouter();
     const { id } = params;
-
-    // Check if user is authenticated and has admin role
-    useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
-            router.push('/login');
-        } else if (!isLoading && isAuthenticated && user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN') {
-            router.push('/dashboard');
-        }
-    }, [isAuthenticated, isLoading, router, user]);
-
-    if (isLoading) {
-        return <div className="flex justify-center p-8">Loading...</div>;
-    }
-
-    if (!isAuthenticated || (user?.role !== 'TENANT_MANAGER' && user?.role !== 'SUPER_ADMIN')) {
-        return null; // Will redirect in useEffect
-    }
 
     return (
         <div className="container mx-auto py-6 space-y-6">

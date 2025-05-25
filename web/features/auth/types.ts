@@ -1,8 +1,10 @@
+import { Role } from '@/constants/roles';
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'manager' | 'staff';
+  role: Role;
 }
 
 export interface AuthState {

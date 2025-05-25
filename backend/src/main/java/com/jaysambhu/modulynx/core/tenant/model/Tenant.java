@@ -5,6 +5,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
 
+/**
+ * Entity representing a tenant in the system.
+ * Core tenant identity and status information.
+ */
 @Entity
 @Table(name = "tenant")
 @Getter
@@ -31,12 +35,6 @@ public class Tenant extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ModuleType moduleType;
-
-    @Column(nullable = false)
-    private String currency;
-
-    @Column(nullable = false)
-    private String timezone;
 
     @Override
     public boolean equals(Object o) {

@@ -37,12 +37,6 @@ public class TenantDto {
     @NotNull(message = "Module type is required")
     private ModuleType moduleType;
 
-    @NotBlank(message = "Currency is required")
-    private String currency;
-
-    @NotBlank(message = "Timezone is required")
-    private String timezone;
-
     private LocalDateTime createdAt;
     private String createdBy;
     private LocalDateTime updatedAt;

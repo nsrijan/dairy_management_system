@@ -18,80 +18,80 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/companies")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TENANT_ADMIN')")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TENANT_ADMIN')")
 public class CompanyAdminController {
 
-    private final CompanyService companyService;
+        private final CompanyService companyService;
 
-    @PostMapping
-    public ResponseEntity<GlobalApiResponse<CompanyDto>> createCompany(@Valid @RequestBody CompanyDto companyDto) {
-        CompanyDto createdCompany = companyService.createCompany(companyDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(GlobalApiResponse.<CompanyDto>builder()
-                .success(true)
-                .message("Company created successfully")
-                .data(createdCompany)
-                .build());
-    }
+        @PostMapping
+        public ResponseEntity<GlobalApiResponse<CompanyDto>> createCompany(@Valid @RequestBody CompanyDto companyDto) {
+                CompanyDto createdCompany = companyService.createCompany(companyDto);
+                return ResponseEntity.status(HttpStatus.CREATED).body(GlobalApiResponse.<CompanyDto>builder()
+                                .success(true)
+                                .message("Company created successfully")
+                                .data(createdCompany)
+                                .build());
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<GlobalApiResponse<CompanyDto>> updateCompany(
-            @PathVariable Long id, @Valid @RequestBody CompanyDto companyDto) {
-        CompanyDto updatedCompany = companyService.updateCompany(id, companyDto);
-        return ResponseEntity.ok(GlobalApiResponse.<CompanyDto>builder()
-                .success(true)
-                .message("Company updated successfully")
-                .data(updatedCompany)
-                .build());
-    }
+        @PutMapping("/{id}")
+        public ResponseEntity<GlobalApiResponse<CompanyDto>> updateCompany(
+                        @PathVariable Long id, @Valid @RequestBody CompanyDto companyDto) {
+                CompanyDto updatedCompany = companyService.updateCompany(id, companyDto);
+                return ResponseEntity.ok(GlobalApiResponse.<CompanyDto>builder()
+                                .success(true)
+                                .message("Company updated successfully")
+                                .data(updatedCompany)
+                                .build());
+        }
 
-    @GetMapping
-    public ResponseEntity<GlobalApiResponse<List<CompanyDto>>> getAllCompanies() {
-        List<CompanyDto> companies = companyService.getCompaniesByTenant();
-        return ResponseEntity.ok(GlobalApiResponse.<List<CompanyDto>>builder()
-                .success(true)
-                .message("Companies retrieved successfully")
-                .data(companies)
-                .build());
-    }
+        @GetMapping
+        public ResponseEntity<GlobalApiResponse<List<CompanyDto>>> getAllCompanies() {
+                List<CompanyDto> companies = companyService.getCompaniesByTenant();
+                return ResponseEntity.ok(GlobalApiResponse.<List<CompanyDto>>builder()
+                                .success(true)
+                                .message("Companies retrieved successfully")
+                                .data(companies)
+                                .build());
+        }
 
-    @GetMapping("/pageable")
-    public ResponseEntity<GlobalApiResponse<Page<CompanyDto>>> getAllCompaniesPaginated(
-            @PageableDefault(size = 10) Pageable pageable) {
-        Page<CompanyDto> companies = companyService.getCompaniesByTenant(pageable);
-        return ResponseEntity.ok(GlobalApiResponse.<Page<CompanyDto>>builder()
-                .success(true)
-                .message("Companies retrieved successfully")
-                .data(companies)
-                .build());
-    }
+        @GetMapping("/pageable")
+        public ResponseEntity<GlobalApiResponse<Page<CompanyDto>>> getAllCompaniesPaginated(
+                        @PageableDefault(size = 10) Pageable pageable) {
+                Page<CompanyDto> companies = companyService.getCompaniesByTenant(pageable);
+                return ResponseEntity.ok(GlobalApiResponse.<Page<CompanyDto>>builder()
+                                .success(true)
+                                .message("Companies retrieved successfully")
+                                .data(companies)
+                                .build());
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GlobalApiResponse<CompanyDto>> getCompanyById(@PathVariable Long id) {
-        CompanyDto company = companyService.getCompanyById(id);
-        return ResponseEntity.ok(GlobalApiResponse.<CompanyDto>builder()
-                .success(true)
-                .message("Company retrieved successfully")
-                .data(company)
-                .build());
-    }
+        @GetMapping("/{id}")
+        public ResponseEntity<GlobalApiResponse<CompanyDto>> getCompanyById(@PathVariable Long id) {
+                CompanyDto company = companyService.getCompanyById(id);
+                return ResponseEntity.ok(GlobalApiResponse.<CompanyDto>builder()
+                                .success(true)
+                                .message("Company retrieved successfully")
+                                .data(company)
+                                .build());
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<GlobalApiResponse<Void>> deleteCompany(@PathVariable Long id) {
-        companyService.deleteCompany(id);
-        return ResponseEntity.ok(GlobalApiResponse.<Void>builder()
-                .success(true)
-                .message("Company deleted successfully")
-                .build());
-    }
+        @DeleteMapping("/{id}")
+        public ResponseEntity<GlobalApiResponse<Void>> deleteCompany(@PathVariable Long id) {
+                companyService.deleteCompany(id);
+                return ResponseEntity.ok(GlobalApiResponse.<Void>builder()
+                                .success(true)
+                                .message("Company deleted successfully")
+                                .build());
+        }
 
-    @GetMapping("/search")
-    public ResponseEntity<GlobalApiResponse<List<CompanyDto>>> searchCompaniesByName(
-            @RequestParam String name) {
-        List<CompanyDto> companies = companyService.searchCompaniesByName(name);
-        return ResponseEntity.ok(GlobalApiResponse.<List<CompanyDto>>builder()
-                .success(true)
-                .message("Companies retrieved successfully")
-                .data(companies)
-                .build());
-    }
+        @GetMapping("/search")
+        public ResponseEntity<GlobalApiResponse<List<CompanyDto>>> searchCompaniesByName(
+                        @RequestParam String name) {
+                List<CompanyDto> companies = companyService.searchCompaniesByName(name);
+                return ResponseEntity.ok(GlobalApiResponse.<List<CompanyDto>>builder()
+                                .success(true)
+                                .message("Companies retrieved successfully")
+                                .data(companies)
+                                .build());
+        }
 }

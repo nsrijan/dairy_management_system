@@ -65,8 +65,6 @@ public class TenantServiceImpl implements TenantService {
                 .slug(tenantDto.getSlug())
                 .isActive(tenantDto.isActive())
                 .moduleType(tenantDto.getModuleType())
-                .currency(tenantDto.getCurrency())
-                .timezone(tenantDto.getTimezone())
                 .build();
 
         Tenant savedTenant = tenantRepository.save(tenant);
@@ -88,8 +86,6 @@ public class TenantServiceImpl implements TenantService {
         existingTenant.setSlug(tenantDto.getSlug());
         existingTenant.setActive(tenantDto.isActive());
         existingTenant.setModuleType(tenantDto.getModuleType());
-        existingTenant.setCurrency(tenantDto.getCurrency());
-        existingTenant.setTimezone(tenantDto.getTimezone());
 
         Tenant updatedTenant = tenantRepository.save(existingTenant);
         return mapToDto(updatedTenant);
@@ -124,8 +120,6 @@ public class TenantServiceImpl implements TenantService {
                 .slug(tenant.getSlug())
                 .isActive(tenant.isActive())
                 .moduleType(tenant.getModuleType())
-                .currency(tenant.getCurrency())
-                .timezone(tenant.getTimezone())
                 .createdAt(tenant.getCreatedAt())
                 .createdBy(tenant.getCreatedBy())
                 .updatedAt(tenant.getUpdatedAt())
