@@ -3,19 +3,52 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import TenantsList from '@/features/tenant/components/TenantsList';
+import { TenantList } from '@/features/admin/tenants/components';
+import { useEffect, useState } from 'react';
+import { getAllTenants } from '@/features/tenant/tenantService';
+import { TenantResponse } from '@/features/tenant/types';
+import { useAuth } from '@/app/providers';
 
 export default function TenantsPage() {
     const router = useRouter();
+    const auth = useAuth();
+    const [tenants, setTenants] = useState<TenantResponse[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchTenants = async () => {
+            if (!auth.token) {
+                setError('No authentication token available');
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const response = await getAllTenants(auth.token, 0, 10);
+                setTenants(response.tenants);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to fetch tenants');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTenants();
+    }, [auth.token]);
+
+    if (isLoading) {
+        return <div className="p-6">Loading tenants...</div>;
+    }
+
+    if (error) {
+        return <div className="p-6 text-red-600">Error: {error}</div>;
+    }
 
     return (
-        <>
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Tenant Management</h1>
-                <p className="text-gray-600 dark:text-gray-400">Create and manage tenants in the system.</p>
-            </div>
-
-            <TenantsList />
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-6">Tenants</h1>
+            <TenantList tenants={tenants} />
 
             <Button
                 onClick={() => router.push('/admin/tenants/new')}
@@ -23,6 +56,6 @@ export default function TenantsPage() {
             >
                 <Plus className="h-6 w-6" />
             </Button>
-        </>
+        </div>
     );
 } 
