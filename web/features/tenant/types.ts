@@ -8,16 +8,23 @@ export enum ModuleType {
     GARMENTS = 'GARMENTS'
 }
 
-export interface Tenant {
+export interface TenantResponse {
     id: string;
     name: string;
     subdomain: string;
     active: boolean;
     moduleType: ModuleType;
-    currency?: string;
-    timezone?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    currency: string;
+    timezone: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface TenantsListResponse {
+    tenants: TenantResponse[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
 }
 
 export interface TenantCreateRequest {
@@ -35,23 +42,4 @@ export interface TenantUpdateRequest {
     moduleType?: ModuleType;
     currency?: string;
     timezone?: string;
-}
-
-export interface TenantResponse {
-    id: string;
-    name: string;
-    subdomain: string;
-    active: boolean;
-    moduleType: ModuleType;
-    currency?: string;
-    timezone?: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface TenantsListResponse {
-    tenants: TenantResponse[];
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
 } 
