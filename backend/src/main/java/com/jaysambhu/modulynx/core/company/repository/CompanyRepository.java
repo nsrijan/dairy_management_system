@@ -66,4 +66,12 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * @return an Optional containing the company if found
      */
     Optional<Company> findByName(String name);
+
+    /**
+     * Find the first company for a tenant
+     *
+     * @param tenantId The tenant ID
+     * @return Optional containing the first company if found
+     */
+    Optional<Company> findFirstByTenantId(Long tenantId);
 }

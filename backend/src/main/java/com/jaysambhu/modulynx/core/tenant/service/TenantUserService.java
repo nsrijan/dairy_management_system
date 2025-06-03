@@ -79,4 +79,12 @@ public interface TenantUserService {
      * @return Updated user
      */
     UserDto removeRole(Long userId, Long roleId, Long companyId);
+
+    /**
+     * Get all users in a specific tenant
+     *
+     * @param tenantId The ID of the tenant
+     * @return List of users in the tenant
+     */
+    List<UserDto> getUsersByTenantId(Long tenantId);
 }

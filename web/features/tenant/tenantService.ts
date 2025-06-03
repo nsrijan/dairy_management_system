@@ -1,8 +1,12 @@
+'use client';
+
 /**
  * Service for managing tenant-related API calls
  */
 
-import { Tenant, TenantCreateRequest, TenantUpdateRequest, TenantsListResponse, ModuleType } from './types';
+import { Tenant, TenantCreateRequest, TenantUpdateRequest, TenantsListResponse, ModuleType, TenantResponse, TenantUserResponse } from './types';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Mock data for development
 const MOCK_TENANTS = [
@@ -140,20 +144,87 @@ const MOCK_TENANTS = [
     }
 ];
 
+// Mock data for tenant users
+const MOCK_TENANT_USERS = [
+    {
+        id: "u1",
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        username: "johndoe",
+        active: true,
+        createdAt: "2024-01-15T10:30:00Z",
+        updatedAt: "2024-01-15T10:30:00Z"
+    },
+    {
+        id: "u2",
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "jane.smith@example.com",
+        username: "janesmith",
+        active: true,
+        createdAt: "2024-01-16T11:20:00Z",
+        updatedAt: "2024-01-16T11:20:00Z"
+    },
+    {
+        id: "u3",
+        firstName: "Mike",
+        lastName: "Johnson",
+        email: "mike.johnson@example.com",
+        username: "mikej",
+        active: false,
+        createdAt: "2024-01-17T09:15:00Z",
+        updatedAt: "2024-01-17T09:15:00Z"
+    },
+    {
+        id: "u4",
+        firstName: "Sarah",
+        lastName: "Williams",
+        email: "sarah.w@example.com",
+        username: "sarahw",
+        active: true,
+        createdAt: "2024-01-18T14:45:00Z",
+        updatedAt: "2024-01-18T14:45:00Z"
+    }
+];
+
+interface CreateTenantAdminRequest {
+    email: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    password: string;
+}
+
+interface TenantAdminResponse {
+    id: string;
+    email: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    createdAt: string;
+}
+
+interface TenantUserAggregationResponse {
+    admins: TenantAdminResponse[];
+    users: TenantUserResponse[];
+    totalCount: number;
+    adminCount: number;
+    userCount: number;
+}
+
 /**
  * Fetches all tenants
  */
 export async function getAllTenants(token: string, page = 0, size = 10): Promise<TenantsListResponse> {
-    // Use environment variable to determine if we should use mock data
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
     if (useMockData) {
-        // Calculate pagination
         const startIndex = page * size;
         const endIndex = startIndex + size;
         const paginatedTenants = MOCK_TENANTS.slice(startIndex, endIndex);
 
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
         return {
@@ -183,8 +254,6 @@ export async function getAllTenants(token: string, page = 0, size = 10): Promise
         }
 
         const apiResponse = await response.json();
-
-        // Backend wraps response in GlobalApiResponse
         return {
             tenants: apiResponse.data || [],
             totalItems: apiResponse.totalItems || apiResponse.data?.length || 0,
@@ -231,14 +300,11 @@ export async function getTenantById(token: string, tenantId: string): Promise<Te
  * Creates a new tenant
  */
 export async function createTenant(token: string, tenant: TenantCreateRequest): Promise<Tenant> {
-    // Use environment variable to determine if we should use mock data
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
     if (useMockData) {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Create mock tenant with generated ID
         const newTenant = {
             id: `t${MOCK_TENANTS.length + 1}`,
             name: tenant.name,
@@ -251,7 +317,6 @@ export async function createTenant(token: string, tenant: TenantCreateRequest): 
             updatedAt: new Date().toISOString()
         };
 
-        // Return mock response
         return newTenant;
     }
 
@@ -317,11 +382,9 @@ export async function updateTenant(token: string, tenantId: string, tenantData: 
  * Deletes a tenant
  */
 export async function deleteTenant(token: string, tenantId: string): Promise<void> {
-    // Use environment variable to determine if we should use mock data
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
     if (useMockData) {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 800));
         return;
     }
@@ -353,14 +416,11 @@ export async function deleteTenant(token: string, tenantId: string): Promise<voi
  * Activates or deactivates a tenant
  */
 export async function changeTenantStatus(token: string, tenantId: string, active: boolean): Promise<Tenant> {
-    // Use environment variable to determine if we should use mock data
     const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
     if (useMockData) {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 600));
 
-        // For mock data, just return a tenant with updated status
         const mockTenant = MOCK_TENANTS.find(t => t.id === tenantId);
         if (mockTenant) {
             return { ...mockTenant, active };
@@ -393,4 +453,162 @@ export async function changeTenantStatus(token: string, tenantId: string, active
         console.error('Error updating tenant status:', error);
         throw error;
     }
-} 
+}
+
+/**
+ * Creates a new tenant admin
+ */
+export async function createTenantAdmin(token: string, tenantId: string, adminData: CreateTenantAdminRequest): Promise<TenantAdminResponse> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const endpoint = `${apiUrl}/api/v1/tenants/${tenantId}/admins`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(adminData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to create tenant admin');
+        }
+
+        const apiResponse = await response.json();
+        return apiResponse.data;
+    } catch (error: any) {
+        console.error('Error creating tenant admin:', error);
+        throw error;
+    }
+}
+
+/**
+ * Gets all admins for a tenant
+ */
+export async function getTenantAdmins(token: string, tenantId: string): Promise<TenantAdminResponse[]> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const endpoint = `${apiUrl}/api/v1/tenants/${tenantId}/admins`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(responseData.message || `Failed to fetch tenant admins. Status: ${response.status}`);
+        }
+
+        return responseData.data || [];
+    } catch (error: any) {
+        console.error('Error fetching tenant admins:', {
+            error,
+            message: error.message,
+            tenantId,
+            endpoint
+        });
+        throw error;
+    }
+}
+
+/**
+ * Updates a tenant admin's status
+ */
+export async function updateTenantAdminStatus(token: string, tenantId: string, adminId: string, isActive: boolean): Promise<TenantAdminResponse> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const endpoint = `${apiUrl}/api/v1/tenants/${tenantId}/admins/${adminId}/status`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ isActive })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to update tenant admin status');
+        }
+
+        const apiResponse = await response.json();
+        return apiResponse.data;
+    } catch (error: any) {
+        console.error('Error updating tenant admin status:', error);
+        throw error;
+    }
+}
+
+/**
+ * Gets all users for a tenant
+ */
+export async function getTenantUsers(token: string, tenantId: string): Promise<TenantUserResponse[]> {
+    const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+
+    if (useMockData) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        return MOCK_TENANT_USERS;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/tenants/${tenantId}/users`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch tenant users');
+        }
+
+        const data = await response.json();
+        return data.data;
+    } catch (error) {
+        console.error('Error fetching tenant users:', error);
+        throw error;
+    }
+}
+
+/**
+ * Gets all users (both admins and regular users) for a tenant
+ */
+export async function getTenantAggregatedUsers(token: string, tenantId: string): Promise<TenantUserAggregationResponse> {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const endpoint = `${apiUrl}/api/v1/tenants/${tenantId}/aggregated-users`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch tenant users');
+        }
+
+        const apiResponse = await response.json();
+        return apiResponse.data;
+    } catch (error) {
+        console.error('Error fetching tenant users:', error);
+        throw error;
+    }
+}

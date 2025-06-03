@@ -52,6 +52,11 @@ const sidebarNavItems: NavItem[] = [
         href: '/admin'
     },
     {
+        icon: <Package className="h-5 w-5" />,
+        label: 'Modules',
+        href: '/admin/modules'
+    },
+    {
         icon: <Building className="h-5 w-5" />,
         label: 'Tenants',
         href: '/admin/tenants',
@@ -61,11 +66,6 @@ const sidebarNavItems: NavItem[] = [
         icon: <Users className="h-5 w-5" />,
         label: 'Users',
         href: '/admin/users'
-    },
-    {
-        icon: <Package className="h-5 w-5" />,
-        label: 'Modules',
-        href: '/admin/modules'
     },
     {
         icon: <FileText className="h-5 w-5" />,

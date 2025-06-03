@@ -29,6 +29,6 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- Create user company role assignment if not exists
-INSERT INTO user_company_role (id, user_id, company_id, role_id, is_active, created_at, updated_at, version)
-VALUES (1, 1, 1, 1, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-ON CONFLICT (id) DO NOTHING; 
+INSERT INTO user_company_role (user_id, company_id, role_id, is_active, created_at, updated_at, version)
+VALUES (1, 1, 1, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+ON CONFLICT (user_id, company_id, role_id) DO NOTHING; 

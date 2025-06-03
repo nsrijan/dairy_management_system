@@ -30,6 +30,11 @@ const TenantLayout = ({ children }: LayoutProps) => {
             current: pathname.endsWith('/branding'),
         },
         {
+            name: 'Companies',
+            href: `/admin/tenants/${tenantId}/companies`,
+            current: pathname.endsWith('/companies'),
+        },
+        {
             name: 'Users',
             href: `/admin/tenants/${tenantId}/users`,
             current: pathname.endsWith('/users'),

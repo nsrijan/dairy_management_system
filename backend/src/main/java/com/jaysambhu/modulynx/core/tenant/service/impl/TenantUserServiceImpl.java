@@ -258,6 +258,19 @@ public class TenantUserServiceImpl extends AbstractTenantAwareService implements
         return mapUserToDto(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsersByTenantId(Long tenantId) {
+        // Validate tenant exists
+        tenantService.findById(tenantId);
+
+        // Get users for the tenant
+        List<User> users = userRepository.findByPrimaryTenantId(tenantId);
+        return users.stream()
+                .map(this::mapUserToDto)
+                .collect(Collectors.toList());
+    }
+
     /**
      * Find a user by ID ensuring they belong to the specified tenant
      */

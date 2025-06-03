@@ -1,4 +1,10 @@
 -- Add system admin role assignment
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM user_company_role 
+        WHERE user_id = 1 AND company_id = 1 AND role_id = 1
+    ) THEN
 INSERT INTO user_company_role (
     id,
     created_at,
@@ -23,3 +29,5 @@ VALUES (
     1, -- SYSTEM_ADMIN role id
     true
 ); 
+    END IF;
+END $$; 
