@@ -54,7 +54,7 @@ export const moduleApi = {
     updateModule: async (token: string, id: number, data: Partial<ModuleFormData>): Promise<Module> => {
         try {
             const response = await fetch(`${API_BASE_URL}${API_PATH}/${id}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',

@@ -1,14 +1,16 @@
 'use client';
 
 import { FC } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Module, ModuleFormData } from '../types';
 import { X } from 'lucide-react';
 import { useModuleForm } from '../hooks/useModuleForm';
+import { toast } from '@/components/ui/use-toast';
+import { moduleService } from '../services/moduleService';
 
 interface ModuleFormDialogProps {
     open: boolean;
@@ -29,8 +31,6 @@ export const ModuleFormDialog: FC<ModuleFormDialogProps> = ({
 }) => {
     const {
         form,
-        fields,
-        append,
         isSubmitting,
         register,
         watch,
@@ -43,102 +43,112 @@ export const ModuleFormDialog: FC<ModuleFormDialogProps> = ({
         token
     });
 
+    const handleSubmit = async (data: ModuleFormData) => {
+        try {
+            const cleanedData = moduleService.cleanModuleData(data);
+
+            // Only set default ALL feature for new modules
+            if (mode === 'create') {
+                cleanedData.features = [{ name: 'ALL', code: 'ALL' }];
+            }
+
+            await onSuccess(cleanedData);
+            onClose();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to submit form"
+            });
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[440px] bg-white p-0">
-                <DialogHeader className="p-5 border-b">
-                    <div className="flex justify-between items-center">
+            <DialogContent className="sm:max-w-[500px] bg-white p-0">
+                <div className="p-6 space-y-6">
+                    <div className="flex items-center justify-between border-b pb-4">
                         <div>
-                            <DialogTitle className="text-base font-medium leading-none">
-                                {mode === 'create' ? 'Create New Module' : 'Edit Module'}
-                            </DialogTitle>
-                            <DialogDescription className="text-sm text-muted-foreground mt-1.5">
-                                Fill in the details for the business module.
-                            </DialogDescription>
+                            <h2 className="text-lg font-semibold text-gray-900">Create New Module</h2>
+                            <p className="text-sm text-gray-500">Fill in the details for the new business module.</p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-purple-100"
+                            className="rounded-md p-1 hover:bg-gray-100"
                         >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Close</span>
+                            <X className="h-5 w-5 text-gray-400" />
                         </button>
                     </div>
-                </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto p-5">
-                    <form id="module-form" onSubmit={form.handleSubmit(onSuccess)} className="space-y-4">
-                        <div className="grid gap-3">
-                            <div className="grid gap-1.5">
-                                <label className="text-sm font-medium">Name</label>
+                    <form id="module-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+                        <div className="space-y-5">
+                            <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                <label htmlFor="name" className="text-sm font-medium text-right text-gray-700">
+                                    Name
+                                </label>
                                 <Input
+                                    id="name"
                                     placeholder="e.g., Dairy Management"
                                     {...register('name', { required: true })}
-                                    className="h-8 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+                                    className="border-gray-300 focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
                                 />
                             </div>
 
-                            <div className="grid gap-1.5">
-                                <label className="text-sm font-medium">Code</label>
+                            <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                <label htmlFor="slug" className="text-sm font-medium text-right text-gray-700">
+                                    Slug
+                                </label>
                                 <Input
-                                    placeholder="dairy-management"
-                                    {...register('code', { required: true })}
+                                    id="slug"
+                                    value={watch('code')}
                                     readOnly
-                                    className="h-8 bg-gray-50 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+                                    className="bg-gray-50 border-gray-300"
                                 />
                             </div>
 
-                            <div className="grid gap-1.5">
-                                <label className="text-sm font-medium">Description</label>
+                            <div className="grid grid-cols-[100px_1fr] items-start gap-3">
+                                <label htmlFor="description" className="text-sm font-medium text-right text-gray-700 pt-2">
+                                    Description
+                                </label>
                                 <Textarea
+                                    id="description"
                                     placeholder="Brief description of the module"
                                     {...register('description', { required: true })}
-                                    className="resize-none min-h-[60px] focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+                                    className="min-h-[80px] border-gray-300 focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between gap-1.5">
-                                <label className="text-sm font-medium">Active</label>
-                                <Switch
-                                    checked={watch('active')}
-                                    onCheckedChange={(checked) => setValue('active', checked)}
-                                />
-                            </div>
-
-                            <div className="grid gap-1.5">
-                                <label className="text-sm font-medium">Features</label>
-                                <div className="space-y-1.5">
-                                    {fields.map((field, index) => (
-                                        <Input
-                                            key={field.id}
-                                            placeholder="Feature name"
-                                            {...register(`features.${index}.name`)}
-                                            className="h-8 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
-                                        />
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => append({ name: '' })}
-                                        className="w-full h-8 flex items-center justify-center gap-2 text-sm border border-dashed border-gray-300 rounded-md hover:border-gray-400 text-gray-600 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
-                                    >
-                                        <span>+</span>
-                                        Add Feature
-                                    </button>
-                                </div>
+                            <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                <label htmlFor="icon" className="text-sm font-medium text-right text-gray-700">
+                                    Icon
+                                </label>
+                                <Select
+                                    value={watch('icon')}
+                                    onValueChange={(value) => setValue('icon', value)}
+                                >
+                                    <SelectTrigger className="border-gray-300 focus:ring-2 focus:ring-purple-200 focus:border-purple-400">
+                                        <SelectValue placeholder="Select an icon" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="building">Building</SelectItem>
+                                        <SelectItem value="office">Office</SelectItem>
+                                        <SelectItem value="home">Home</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    </form>
-                </div>
 
-                <div className="p-5 border-t">
-                    <Button
-                        type="submit"
-                        form="module-form"
-                        className="w-full bg-purple-500 hover:bg-purple-600 text-white h-8 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Module' : 'Update Module'}
-                    </Button>
+                        <div className="pt-2">
+                            <Button
+                                type="submit"
+                                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                                disabled={isSubmitting}
+                            >
+                                {mode === 'create' ? 'Create Module' : 'Update Module'}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </DialogContent>
         </Dialog>

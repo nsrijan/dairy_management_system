@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Module, ModuleFormData } from '../types';
 import { moduleService } from '../services/moduleService';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,17 +19,12 @@ export const useModuleForm = ({ token, module, mode, onSuccess, onClose }: UseMo
             name: '',
             code: '',
             description: '',
-            active: true,
-            features: [{ name: '' }]
+            icon: 'building',
+            features: [{ id: undefined, name: 'ALL', code: 'ALL' }]
         }
     });
 
     const { register, handleSubmit, reset, control, watch, setValue, formState: { isSubmitting } } = form;
-
-    const { fields, append } = useFieldArray({
-        control,
-        name: "features"
-    });
 
     // Auto-generate code from name
     const name = watch('name');
@@ -43,33 +38,53 @@ export const useModuleForm = ({ token, module, mode, onSuccess, onClose }: UseMo
     // Initialize form with module data in edit mode
     useEffect(() => {
         if (module && mode === 'edit') {
+            // Preserve the ID of the existing ALL feature if it exists
+            const existingAllFeature = module.features.find(f => f.name === 'ALL' && f.code === 'ALL');
+
             reset({
                 id: module.id,
                 name: module.name,
                 code: module.code,
                 description: module.description,
-                active: module.active,
-                features: module.features.map(f => ({ name: f.name }))
+                icon: module.icon,
+                features: existingAllFeature
+                    ? [existingAllFeature]
+                    : [{ id: undefined, name: 'ALL', code: 'ALL' }]
+            }, {
+                keepDefaultValues: false
             });
         }
     }, [module, mode, reset]);
 
     const onSubmit = async (data: ModuleFormData) => {
         try {
+            // Preserve feature ID if editing
+            const existingFeatureId = module?.features.find(f => f.name === 'ALL' && f.code === 'ALL')?.id;
+
+            const submitData = {
+                ...data,
+                features: [{
+                    id: existingFeatureId,
+                    name: 'ALL',
+                    code: 'ALL',
+                    moduleId: module?.id
+                }]
+            };
+
             if (mode === 'create') {
-                await moduleService.createModule(token, data);
+                await moduleService.createModule(token, submitData);
                 toast({
                     title: "Success",
                     description: "Module created successfully"
                 });
-            } else {
-                await moduleService.updateModule(token, data);
+            } else if (module?.id) {
+                await moduleService.updateModule(token, module.id, submitData);
                 toast({
                     title: "Success",
                     description: "Module updated successfully"
                 });
             }
-            onSuccess(data);
+            onSuccess(submitData);
             onClose();
             reset();
         } catch (error) {
@@ -84,8 +99,6 @@ export const useModuleForm = ({ token, module, mode, onSuccess, onClose }: UseMo
 
     return {
         form,
-        fields,
-        append,
         isSubmitting,
         register,
         onSubmit: handleSubmit(onSubmit),

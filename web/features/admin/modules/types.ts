@@ -12,10 +12,11 @@ export interface Module {
     name: string;
     code: string;
     description: string;
+    icon: string;
     active: boolean;
     features: Feature[];
-    createdAt?: string;
-    updatedAt?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface ModuleCreateRequest {
@@ -56,6 +57,6 @@ export interface ModuleFormData {
     name: string;
     code: string;
     description: string;
-    active: boolean;
+    icon: string;
     features: Feature[];
 } 

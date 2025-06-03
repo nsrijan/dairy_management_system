@@ -1,6 +1,6 @@
 'use client';
 
-import { ModuleFormData, Module, ModulesListResponse } from '../types';
+import { ModuleFormData, Module, ModulesListResponse, ModuleUpdateRequest } from '../types';
 import { moduleApi } from '../api/moduleApi';
 
 /**
@@ -38,7 +38,16 @@ export const moduleService = {
 
     async updateModule(token: string, id: number, data: Partial<ModuleFormData>): Promise<Module> {
         try {
-            const response = await moduleApi.updateModule(token, id, data);
+            // Include all fields including features in the update request
+            const updateData: ModuleUpdateRequest = {
+                name: data.name,
+                code: data.code,
+                description: data.description,
+                active: data.active,
+                features: data.features // Include features in the update
+            };
+
+            const response = await moduleApi.updateModule(token, id, updateData);
             return response;
         } catch (error) {
             console.error('Error in updateModule:', error);

@@ -1,15 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { getTenantById } from '@/features/tenant/tenantService';
 import { useAuth } from '@/app/providers';
 import { TenantResponse } from '@/features/tenant/types';
-import Link from 'next/link';
-import { Building2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Box, Users, Calendar, Edit, MoreVertical } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function TenantDetailsPage() {
     const params = useParams();
+    const router = useRouter();
     const auth = useAuth();
     const [tenant, setTenant] = useState<TenantResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -49,65 +53,159 @@ export default function TenantDetailsPage() {
     }
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold">{tenant.name}</h1>
-                <p className="text-gray-500">{tenant.subdomain}</p>
-                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${tenant.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {tenant.active ? 'Active' : 'Inactive'}
-                </span>
+        <div className="p-6 max-w-[1200px] mx-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push('/admin/tenants')}
+                        className="flex items-center gap-2"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Tenants
+                    </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
-            <div className="flex space-x-4 mb-6">
-                <Link
-                    href={`/admin/tenants/${params.id}`}
-                    className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-                >
-                    General
-                </Link>
-                <Link
-                    href={`/admin/tenants/${params.id}/companies`}
-                    className="px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow flex items-center"
-                >
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Companies
-                </Link>
+            {/* Tenant Info */}
+            <div className="flex items-start gap-4 mb-8">
+                <div className="h-12 w-12 rounded-full bg-brand-primary flex items-center justify-center text-white">
+                    {tenant.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold">{tenant.name}</h1>
+                    <p className="text-muted-foreground">@{tenant.subdomain}</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* General Information */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h2 className="text-lg font-semibold mb-4">General Information</h2>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm text-gray-500">Module Type</label>
-                            <p className="font-medium">{tenant.moduleType}</p>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-4 gap-4 mb-8">
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded bg-blue-100 flex items-center justify-center">
+                                <Box className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Active Modules</p>
+                                <p className="text-2xl font-semibold">1</p>
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-sm text-gray-500">Timezone</label>
-                            <p className="font-medium">{tenant.timezone}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded bg-green-100 flex items-center justify-center">
+                                <Box className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Companies</p>
+                                <p className="text-2xl font-semibold">2</p>
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-sm text-gray-500">Currency</label>
-                            <p className="font-medium">{tenant.currency}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded bg-purple-100 flex items-center justify-center">
+                                <Users className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Users</p>
+                                <p className="text-2xl font-semibold">12</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded bg-orange-100 flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-orange-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Days Active</p>
+                                <p className="text-2xl font-semibold">0</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-                {/* Dates */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h2 className="text-lg font-semibold mb-4">Dates</h2>
-                    <div className="space-y-4">
+            {/* Navigation */}
+            <Tabs defaultValue="overview" className="mb-8">
+                <TabsList>
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="modules">Modules</TabsTrigger>
+                    <TabsTrigger value="companies">Companies</TabsTrigger>
+                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                </TabsList>
+            </Tabs>
+
+            {/* Content */}
+            <div className="grid grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tenant Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         <div>
-                            <label className="text-sm text-gray-500">Created At</label>
-                            <p className="font-medium">{new Date(tenant.createdAt).toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Name</p>
+                            <p className="font-medium">{tenant.name}</p>
                         </div>
                         <div>
-                            <label className="text-sm text-gray-500">Last Updated</label>
-                            <p className="font-medium">{new Date(tenant.updatedAt).toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Slug</p>
+                            <Badge variant="secondary">{tenant.subdomain}</Badge>
                         </div>
-                    </div>
-                </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Currency</p>
+                            <p className="font-medium">NPR</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Timezone</p>
+                            <p className="font-medium">Asia/Kathmandu</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Created</p>
+                            <p className="font-medium">6/3/2025</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Theme Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Primary Color</p>
+                            <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded bg-[#90B87F5]"></div>
+                                <p className="font-medium">#90B87F5</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Secondary Color</p>
+                            <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded bg-[#7E69AB]"></div>
+                                <p className="font-medium">#7E69AB</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
