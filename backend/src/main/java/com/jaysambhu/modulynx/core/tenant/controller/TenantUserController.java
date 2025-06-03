@@ -26,170 +26,190 @@ import java.util.List;
 @Slf4j
 public class TenantUserController {
 
-    private final TenantUserService tenantUserService;
+        private final TenantUserService tenantUserService;
 
-    /**
-     * Get all users in the current tenant
-     *
-     * @return List of users
-     */
-    @GetMapping
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
-    public ResponseEntity<GlobalApiResponse<List<UserDto>>> getAllUsers() {
-        List<UserDto> users = tenantUserService.getAllUsers();
+        /**
+         * Get all users in a specific tenant
+         *
+         * @param tenantId The ID of the tenant
+         * @return List of users in the tenant
+         */
+        @GetMapping("/api/v1/tenants/{tenantId}/users")
+        @PreAuthorize("hasRole('SYSTEM_ADMIN') or (hasRole('TENANT_ADMIN') and @tenantSecurityService.hasTenantAccess(#tenantId))")
+        public ResponseEntity<GlobalApiResponse<List<UserDto>>> getUsersByTenantId(@PathVariable Long tenantId) {
+                log.info("Fetching users for tenant {}", tenantId);
+                List<UserDto> users = tenantUserService.getUsersByTenantId(tenantId);
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<List<UserDto>>builder()
-                        .success(true)
-                        .message("Users retrieved successfully")
-                        .data(users)
-                        .build());
-    }
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<List<UserDto>>builder()
+                                                .success(true)
+                                                .message("Users retrieved successfully")
+                                                .data(users)
+                                                .build());
+        }
 
-    /**
-     * Get all users in the current tenant with pagination
-     *
-     * @param pageable Pagination information
-     * @return Page of users
-     */
-    @GetMapping("/paged")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
-    public ResponseEntity<GlobalApiResponse<Page<UserDto>>> getAllUsersPaged(Pageable pageable) {
-        Page<UserDto> usersPage = tenantUserService.getAllUsers(pageable);
+        /**
+         * Get all users in the current tenant
+         *
+         * @return List of users
+         */
+        @GetMapping
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
+        public ResponseEntity<GlobalApiResponse<List<UserDto>>> getAllUsers() {
+                List<UserDto> users = tenantUserService.getAllUsers();
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<Page<UserDto>>builder()
-                        .success(true)
-                        .message("Users page retrieved successfully")
-                        .data(usersPage)
-                        .build());
-    }
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<List<UserDto>>builder()
+                                                .success(true)
+                                                .message("Users retrieved successfully")
+                                                .data(users)
+                                                .build());
+        }
 
-    /**
-     * Get a user by ID
-     *
-     * @param id User ID
-     * @return The user
-     */
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
-    public ResponseEntity<GlobalApiResponse<UserDto>> getUserById(@PathVariable Long id) {
-        UserDto user = tenantUserService.getUserById(id);
+        /**
+         * Get all users in the current tenant with pagination
+         *
+         * @param pageable Pagination information
+         * @return Page of users
+         */
+        @GetMapping("/paged")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
+        public ResponseEntity<GlobalApiResponse<Page<UserDto>>> getAllUsersPaged(Pageable pageable) {
+                Page<UserDto> usersPage = tenantUserService.getAllUsers(pageable);
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<UserDto>builder()
-                        .success(true)
-                        .message("User retrieved successfully")
-                        .data(user)
-                        .build());
-    }
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<Page<UserDto>>builder()
+                                                .success(true)
+                                                .message("Users page retrieved successfully")
+                                                .data(usersPage)
+                                                .build());
+        }
 
-    /**
-     * Create a new user in the current tenant
-     *
-     * @param registrationDto User registration information
-     * @return The created user
-     */
-    @PostMapping
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_CREATE')")
-    public ResponseEntity<GlobalApiResponse<UserDto>> createUser(
-            @Valid @RequestBody UserRegistrationDto registrationDto) {
-        UserDto createdUser = tenantUserService.createUser(registrationDto);
+        /**
+         * Get a user by ID
+         *
+         * @param id User ID
+         * @return The user
+         */
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_READ')")
+        public ResponseEntity<GlobalApiResponse<UserDto>> getUserById(@PathVariable Long id) {
+                UserDto user = tenantUserService.getUserById(id);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                GlobalApiResponse.<UserDto>builder()
-                        .success(true)
-                        .message("User created successfully")
-                        .data(createdUser)
-                        .build());
-    }
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<UserDto>builder()
+                                                .success(true)
+                                                .message("User retrieved successfully")
+                                                .data(user)
+                                                .build());
+        }
 
-    /**
-     * Update a user
-     *
-     * @param id      User ID
-     * @param userDto Updated user information
-     * @return The updated user
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
-    public ResponseEntity<GlobalApiResponse<UserDto>> updateUser(@PathVariable Long id,
-            @Valid @RequestBody UserDto userDto) {
-        UserDto updatedUser = tenantUserService.updateUser(id, userDto);
+        /**
+         * Create a new user in the current tenant
+         *
+         * @param registrationDto User registration information
+         * @return The created user
+         */
+        @PostMapping
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_CREATE')")
+        public ResponseEntity<GlobalApiResponse<UserDto>> createUser(
+                        @Valid @RequestBody UserRegistrationDto registrationDto) {
+                UserDto createdUser = tenantUserService.createUser(registrationDto);
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<UserDto>builder()
-                        .success(true)
-                        .message("User updated successfully")
-                        .data(updatedUser)
-                        .build());
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                                GlobalApiResponse.<UserDto>builder()
+                                                .success(true)
+                                                .message("User created successfully")
+                                                .data(createdUser)
+                                                .build());
+        }
 
-    /**
-     * Delete a user
-     *
-     * @param id User ID
-     * @return Success response
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_DELETE')")
-    public ResponseEntity<GlobalApiResponse<Void>> deleteUser(@PathVariable Long id) {
-        tenantUserService.deleteUser(id);
+        /**
+         * Update a user
+         *
+         * @param id      User ID
+         * @param userDto Updated user information
+         * @return The updated user
+         */
+        @PutMapping("/{id}")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
+        public ResponseEntity<GlobalApiResponse<UserDto>> updateUser(@PathVariable Long id,
+                        @Valid @RequestBody UserDto userDto) {
+                UserDto updatedUser = tenantUserService.updateUser(id, userDto);
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<Void>builder()
-                        .success(true)
-                        .message("User deleted successfully")
-                        .build());
-    }
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<UserDto>builder()
+                                                .success(true)
+                                                .message("User updated successfully")
+                                                .data(updatedUser)
+                                                .build());
+        }
 
-    /**
-     * Assign a role to a user
-     *
-     * @param userId    User ID
-     * @param roleId    Role ID
-     * @param companyId Company ID
-     * @return The updated user
-     */
-    @PostMapping("/{userId}/roles/{roleId}/companies/{companyId}")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
-    public ResponseEntity<GlobalApiResponse<UserDto>> assignRole(
-            @PathVariable Long userId,
-            @PathVariable Long roleId,
-            @PathVariable Long companyId) {
+        /**
+         * Delete a user
+         *
+         * @param id User ID
+         * @return Success response
+         */
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_DELETE')")
+        public ResponseEntity<GlobalApiResponse<Void>> deleteUser(@PathVariable Long id) {
+                tenantUserService.deleteUser(id);
 
-        UserDto updatedUser = tenantUserService.assignRole(userId, roleId, companyId);
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<Void>builder()
+                                                .success(true)
+                                                .message("User deleted successfully")
+                                                .build());
+        }
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<UserDto>builder()
-                        .success(true)
-                        .message("Role assigned successfully")
-                        .data(updatedUser)
-                        .build());
-    }
+        /**
+         * Assign a role to a user
+         *
+         * @param userId    User ID
+         * @param roleId    Role ID
+         * @param companyId Company ID
+         * @return The updated user
+         */
+        @PostMapping("/{userId}/roles/{roleId}/companies/{companyId}")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
+        public ResponseEntity<GlobalApiResponse<UserDto>> assignRole(
+                        @PathVariable Long userId,
+                        @PathVariable Long roleId,
+                        @PathVariable Long companyId) {
 
-    /**
-     * Remove a role from a user
-     *
-     * @param userId    User ID
-     * @param roleId    Role ID
-     * @param companyId Company ID
-     * @return The updated user
-     */
-    @DeleteMapping("/{userId}/roles/{roleId}/companies/{companyId}")
-    @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
-    public ResponseEntity<GlobalApiResponse<UserDto>> removeRole(
-            @PathVariable Long userId,
-            @PathVariable Long roleId,
-            @PathVariable Long companyId) {
+                UserDto updatedUser = tenantUserService.assignRole(userId, roleId, companyId);
 
-        UserDto updatedUser = tenantUserService.removeRole(userId, roleId, companyId);
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<UserDto>builder()
+                                                .success(true)
+                                                .message("Role assigned successfully")
+                                                .data(updatedUser)
+                                                .build());
+        }
 
-        return ResponseEntity.ok(
-                GlobalApiResponse.<UserDto>builder()
-                        .success(true)
-                        .message("Role removed successfully")
-                        .data(updatedUser)
-                        .build());
-    }
+        /**
+         * Remove a role from a user
+         *
+         * @param userId    User ID
+         * @param roleId    Role ID
+         * @param companyId Company ID
+         * @return The updated user
+         */
+        @DeleteMapping("/{userId}/roles/{roleId}/companies/{companyId}")
+        @PreAuthorize("hasAnyAuthority('PERMISSION_USER_UPDATE')")
+        public ResponseEntity<GlobalApiResponse<UserDto>> removeRole(
+                        @PathVariable Long userId,
+                        @PathVariable Long roleId,
+                        @PathVariable Long companyId) {
+
+                UserDto updatedUser = tenantUserService.removeRole(userId, roleId, companyId);
+
+                return ResponseEntity.ok(
+                                GlobalApiResponse.<UserDto>builder()
+                                                .success(true)
+                                                .message("Role removed successfully")
+                                                .data(updatedUser)
+                                                .build());
+        }
 }

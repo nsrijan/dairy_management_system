@@ -16,10 +16,6 @@ import org.hibernate.envers.Audited;
 @Audited
 public class Company extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(nullable = false)
     private String name;
 
@@ -40,7 +36,7 @@ public class Company extends BaseEntity {
         if (!(o instanceof Company))
             return false;
         Company company = (Company) o;
-        return id != null && id.equals(company.id);
+        return getId() != null && getId().equals(company.getId());
     }
 
     @Override
