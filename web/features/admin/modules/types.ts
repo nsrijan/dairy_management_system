@@ -58,5 +58,6 @@ export interface ModuleFormData {
     code: string;
     description: string;
     icon: string;
+    active?: boolean;
     features: Feature[];
 } 

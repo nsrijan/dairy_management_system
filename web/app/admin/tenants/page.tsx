@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TenantList } from '@/features/admin/tenants/components';
 import { useEffect, useState } from 'react';
-import { getAllTenants } from '@/features/tenant/tenantService';
-import { TenantResponse } from '@/features/tenant/types';
+import { getAllTenants } from '@/features/admin/tenants/services/tenantService';
+import { TenantResponse } from '@/features/admin/tenants/types';
 import { useAuth } from '@/app/providers';
+import { TenantOnboardingDialog } from '@/features/admin/tenants/components/onboarding';
 
 export default function TenantsPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function TenantsPage() {
     const [tenants, setTenants] = useState<TenantResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchTenants = async () => {
@@ -47,15 +49,19 @@ export default function TenantsPage() {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-6">Tenants</h1>
             <TenantList tenants={tenants} />
 
             <Button
-                onClick={() => router.push('/admin/tenants/new')}
+                onClick={() => setIsDialogOpen(true)}
                 className="fixed right-6 bottom-6 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-full h-12 w-12 flex items-center justify-center"
             >
                 <Plus className="h-6 w-6" />
             </Button>
+
+            <TenantOnboardingDialog
+                isOpen={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+            />
         </div>
     );
 } 

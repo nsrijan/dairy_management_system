@@ -4,8 +4,8 @@ import { FC, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ModuleCard } from './ModuleCard';
 import { ModuleFormDialog } from './ModuleFormDialog';
-import { moduleService } from '../services/moduleService';
-import { Module, ModuleFormData } from '../types';
+import { moduleService } from '@/features/admin/modules/services/moduleService';
+import { Module, ModuleFormData } from '@/features/admin/modules/types';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,70 +19,6 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { LayoutGrid, List, Plus, Package } from 'lucide-react';
-
-// Dummy data for modules
-const DUMMY_MODULES = [
-    {
-        id: 1,
-        icon: '📦',
-        name: 'Dairy Management',
-        category: 'dairy',
-        description: 'Complete dairy farm and milk processing management system',
-        features: [
-            { name: 'Milk Collection' },
-            { name: 'Farmer Management' },
-            { name: 'Production Planning' },
-            { name: '1', isMore: true }
-        ],
-        isActive: true,
-        createdDate: '6/2/2025'
-    },
-    {
-        id: 2,
-        icon: '🏺',
-        name: 'Pottery & Ceramics',
-        category: 'pottery',
-        description: 'Pottery production and craft management system',
-        features: [
-            { name: 'Product Design' },
-            { name: 'Kiln Management' },
-            { name: 'Inventory Control' },
-            { name: '1', isMore: true }
-        ],
-        isActive: true,
-        createdDate: '6/2/2025'
-    },
-    {
-        id: 3,
-        icon: '👕',
-        name: 'Garment Manufacturing',
-        category: 'garments',
-        description: 'Textile and garment production management',
-        features: [
-            { name: 'Design Management' },
-            { name: 'Production Planning' },
-            { name: 'Quality Assurance' },
-            { name: '1', isMore: true }
-        ],
-        isActive: true,
-        createdDate: '6/2/2025'
-    },
-    {
-        id: 4,
-        icon: '🚛',
-        name: 'Transport & Logistics',
-        category: 'transport',
-        description: 'Bus and transport fleet management system',
-        features: [
-            { name: 'Fleet Management' },
-            { name: 'Route Planning' },
-            { name: 'Driver Management' },
-            { name: '1', isMore: true }
-        ],
-        isActive: false,
-        createdDate: '6/2/2025'
-    }
-];
 
 export interface ModuleManagementProps {
     token: string;

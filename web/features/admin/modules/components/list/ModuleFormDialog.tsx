@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Module, ModuleFormData } from '../types';
+import { Module, ModuleFormData } from '@/features/admin/modules/types';
 import { X } from 'lucide-react';
-import { useModuleForm } from '../hooks/useModuleForm';
+import { useModuleForm } from '@/features/admin/modules/hooks/useModuleForm';
 import { toast } from '@/components/ui/use-toast';
-import { moduleService } from '../services/moduleService';
+import { moduleService } from '@/features/admin/modules/services/moduleService';
+import { Switch } from '@/components/ui/switch';
 
 interface ModuleFormDialogProps {
     open: boolean;
@@ -70,8 +71,14 @@ export const ModuleFormDialog: FC<ModuleFormDialogProps> = ({
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between border-b pb-4">
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">Create New Module</h2>
-                            <p className="text-sm text-gray-500">Fill in the details for the new business module.</p>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                {mode === 'create' ? 'Create New Module' : 'Edit Module'}
+                            </h2>
+                            <p className="text-sm text-gray-500">
+                                {mode === 'create'
+                                    ? 'Fill in the details for the new business module.'
+                                    : 'Update the module details.'}
+                            </p>
                         </div>
                         <button
                             onClick={onClose}
@@ -136,6 +143,22 @@ export const ModuleFormDialog: FC<ModuleFormDialogProps> = ({
                                         <SelectItem value="home">Home</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+
+                            <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                <label htmlFor="active" className="text-sm font-medium text-right text-gray-700">
+                                    Status
+                                </label>
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="active"
+                                        checked={watch('active')}
+                                        onCheckedChange={(checked) => setValue('active', checked)}
+                                    />
+                                    <label htmlFor="active" className="text-sm text-gray-600">
+                                        {watch('active') ? 'Active' : 'Inactive'}
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

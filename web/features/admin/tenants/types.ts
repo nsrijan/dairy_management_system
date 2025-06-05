@@ -1,5 +1,3 @@
-import { TenantResponse as BackendTenantResponse } from '@/features/tenant/types';
-
 export interface TenantSettings {
     generalSettings: {
         timezone: string;
@@ -31,7 +29,7 @@ export interface Tenant {
 }
 
 // Map backend response to our frontend model
-export function mapTenantResponse(response: BackendTenantResponse): Tenant {
+export function mapTenantResponse(response: TenantResponse): Tenant {
     return {
         id: response.id,
         name: response.name,
@@ -63,17 +61,54 @@ export function mapTenantResponse(response: BackendTenantResponse): Tenant {
 
 // Backend response type
 export interface TenantResponse {
-    id: number;
+    id: string;
     name: string;
-    slug: string;
+    subdomain: string;
     active: boolean;
-    moduleType: string;
+    moduleType: ModuleType;
     currency: string;
     timezone: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    logoUrl?: string;
     createdAt: string;
     updatedAt: string;
+}
+
+export enum ModuleType {
+    DAIRY = 'DAIRY',
+    POTTERY = 'POTTERY',
+    GARMENTS = 'GARMENTS'
+}
+
+export interface TenantsListResponse {
+    tenants: TenantResponse[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+}
+
+export interface TenantUserResponse {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface TenantCreateRequest {
+    name: string;
+    subdomain: string;
+    moduleType: ModuleType;
+    currency: string;
+    timezone: string;
+}
+
+export interface TenantUpdateRequest {
+    name?: string;
+    subdomain?: string;
+    moduleType?: ModuleType;
+    currency?: string;
+    timezone?: string;
+    active?: boolean;
 } 

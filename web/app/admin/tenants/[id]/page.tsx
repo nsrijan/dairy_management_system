@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getTenantById } from '@/features/tenant/tenantService';
+import { getTenantById } from '@/features/admin/tenants/services/tenantService';
 import { useAuth } from '@/app/providers';
-import { TenantResponse } from '@/features/tenant/types';
+import { TenantResponse } from '@/features/admin/tenants/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Box, Users, Calendar, Edit, MoreVertical } from 'lucide-react';
@@ -91,56 +91,63 @@ export default function TenantDetailsPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-4 gap-4 mb-8">
-                <Card>
+                <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-gray-900/50 border-blue-100/50 dark:border-blue-900/50">
                     <CardContent className="pt-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 rounded bg-blue-100 flex items-center justify-center">
-                                <Box className="h-5 w-5 text-blue-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                <Box className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Active Modules</p>
-                                <p className="text-2xl font-semibold">1</p>
+                                <p className="text-sm text-blue-600/80 dark:text-blue-400/80 font-medium">Active Modules</p>
+                                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">1</p>
                             </div>
                         </div>
+                        <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-blue-500/5" />
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="relative overflow-hidden bg-gradient-to-br from-green-50 to-white dark:from-green-950/20 dark:to-gray-900/50 border-green-100/50 dark:border-green-900/50">
                     <CardContent className="pt-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 rounded bg-green-100 flex items-center justify-center">
-                                <Box className="h-5 w-5 text-green-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                <Box className="h-6 w-6 text-green-600 dark:text-green-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Companies</p>
-                                <p className="text-2xl font-semibold">2</p>
+                                <p className="text-sm text-green-600/80 dark:text-green-400/80 font-medium">Companies</p>
+                                <p className="text-2xl font-bold text-green-700 dark:text-green-300">2</p>
                             </div>
                         </div>
+                        <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-green-500/5" />
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-gray-900/50 border-purple-100/50 dark:border-purple-900/50">
                     <CardContent className="pt-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 rounded bg-purple-100 flex items-center justify-center">
-                                <Users className="h-5 w-5 text-purple-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Users</p>
-                                <p className="text-2xl font-semibold">12</p>
+                                <p className="text-sm text-purple-600/80 dark:text-purple-400/80 font-medium">Users</p>
+                                <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">12</p>
                             </div>
                         </div>
+                        <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-purple-500/5" />
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-white dark:from-orange-950/20 dark:to-gray-900/50 border-orange-100/50 dark:border-orange-900/50">
                     <CardContent className="pt-6">
-                        <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 rounded bg-orange-100 flex items-center justify-center">
-                                <Calendar className="h-5 w-5 text-orange-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                <Calendar className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Days Active</p>
-                                <p className="text-2xl font-semibold">0</p>
+                                <p className="text-sm text-orange-600/80 dark:text-orange-400/80 font-medium">Days Active</p>
+                                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">0</p>
                             </div>
                         </div>
+                        <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-orange-500/5" />
                     </CardContent>
                 </Card>
             </div>
@@ -157,7 +164,7 @@ export default function TenantDetailsPage() {
 
             {/* Content */}
             <div className="grid grid-cols-2 gap-6">
-                <Card>
+                <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/20 dark:to-gray-900/50 border-gray-200/50 dark:border-gray-700/50">
                     <CardHeader>
                         <CardTitle>Tenant Information</CardTitle>
                     </CardHeader>
@@ -185,7 +192,7 @@ export default function TenantDetailsPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/20 dark:to-gray-900/50 border-gray-200/50 dark:border-gray-700/50">
                     <CardHeader>
                         <CardTitle>Theme Configuration</CardTitle>
                     </CardHeader>

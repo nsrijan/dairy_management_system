@@ -1,4 +1,4 @@
-import { ModuleFormData, Module, ModuleResponse, ModulesListResponse } from '../types';
+import { ModuleFormData, Module, ModulesListResponse } from '../types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const API_PATH = '/api/modules';
@@ -22,6 +22,28 @@ export const moduleApi = {
             return responseData;
         } catch (error) {
             console.error('Error fetching modules:', error);
+            throw error;
+        }
+    },
+
+    getModuleById: async (token: string, id: number): Promise<Module> => {
+        try {
+            const response = await fetch(`${API_BASE_URL}${API_PATH}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(responseData.message || 'Failed to fetch module');
+            }
+
+            return responseData;
+        } catch (error) {
+            console.error('Error fetching module:', error);
             throw error;
         }
     },
