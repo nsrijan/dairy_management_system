@@ -1,2 +1,1 @@
-export * from './ModuleManagement';
-export * from './ModuleCard'; 
+export * from './list'; 
