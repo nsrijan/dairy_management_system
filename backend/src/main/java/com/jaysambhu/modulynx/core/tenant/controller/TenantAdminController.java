@@ -3,6 +3,7 @@ package com.jaysambhu.modulynx.core.tenant.controller;
 import com.jaysambhu.modulynx.common.response.GlobalApiResponse;
 import com.jaysambhu.modulynx.core.tenant.dto.CreateTenantAdminRequest;
 import com.jaysambhu.modulynx.core.tenant.dto.TenantAdminResponse;
+import com.jaysambhu.modulynx.core.tenant.dto.TenantOnboardingRequest;
 import com.jaysambhu.modulynx.core.tenant.service.TenantAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,39 @@ import java.util.List;
  * Controller for managing tenant administrators
  */
 @RestController
-@RequestMapping("/api/v1/tenants/{tenantId}/admins")
+@RequestMapping("/api/v1/tenants")
 @RequiredArgsConstructor
 @Slf4j
 public class TenantAdminController {
 
     private final TenantAdminService tenantAdminService;
+
+    /**
+     * Create a new tenant with admin and company setup
+     *
+     * @param request The tenant onboarding request containing tenant, company, and
+     *                admin data
+     * @return The created tenant admin response
+     */
+    @PostMapping("/setup")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<GlobalApiResponse<TenantAdminResponse>> setupTenant(
+            @Valid @RequestBody TenantOnboardingRequest request) {
+        log.info("Setting up new tenant with name: {} and admin email: {}",
+                request.getTenant().getName(), request.getAdmin().getEmail());
+
+        TenantAdminResponse response = tenantAdminService.setupTenant(
+                request.getTenant(),
+                request.getCompany(),
+                request.getAdmin());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(GlobalApiResponse.<TenantAdminResponse>builder()
+                        .success(true)
+                        .message("Tenant setup completed successfully")
+                        .data(response)
+                        .build());
+    }
 
     /**
      * Create a new tenant admin
@@ -32,7 +60,7 @@ public class TenantAdminController {
      * @param request  The admin creation request
      * @return The created admin
      */
-    @PostMapping
+    @PostMapping("/{tenantId}/admins")
     @PreAuthorize("hasRole('SYSTEM_ADMIN') or (hasRole('TENANT_ADMIN') and @tenantSecurityService.hasTenantAccess(#tenantId))")
     public ResponseEntity<GlobalApiResponse<TenantAdminResponse>> createAdmin(
             @PathVariable Long tenantId,
@@ -54,7 +82,7 @@ public class TenantAdminController {
      * @param tenantId The ID of the tenant
      * @return List of tenant admins
      */
-    @GetMapping
+    @GetMapping("/{tenantId}/admins")
     @PreAuthorize("hasRole('SYSTEM_ADMIN') or (hasRole('TENANT_ADMIN') and @tenantSecurityService.hasTenantAccess(#tenantId))")
     public ResponseEntity<GlobalApiResponse<List<TenantAdminResponse>>> getAdmins(@PathVariable Long tenantId) {
         log.info("Fetching admins for tenant {}", tenantId);
@@ -75,7 +103,7 @@ public class TenantAdminController {
      * @param request  The status update request
      * @return The updated admin
      */
-    @PatchMapping("/{adminId}/status")
+    @PatchMapping("/{tenantId}/admins/{adminId}/status")
     @PreAuthorize("hasRole('SYSTEM_ADMIN') or (hasRole('TENANT_ADMIN') and @tenantSecurityService.hasTenantAccess(#tenantId))")
     public ResponseEntity<GlobalApiResponse<TenantAdminResponse>> updateAdminStatus(
             @PathVariable Long tenantId,

@@ -2,13 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/app/providers';
-import { CompanyContent } from '@/features/tenant/components/company';
+import { CompanyContent } from '@/features/admin/tenants/components/company';
 
 export default function CompaniesPage() {
     const params = useParams();
-    const auth = useAuth();
+    const { token } = useAuth();
 
-    if (!auth.token) {
+    if (!token) {
         return <div className="p-6 text-red-600">Error: Authentication required</div>;
     }
 
@@ -16,7 +16,7 @@ export default function CompaniesPage() {
         <div className="p-6">
             <CompanyContent
                 tenantId={params.id as string}
-                token={auth.token}
+                token={token}
             />
         </div>
     );

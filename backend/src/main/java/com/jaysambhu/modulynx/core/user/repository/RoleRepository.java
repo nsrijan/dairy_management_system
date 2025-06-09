@@ -3,6 +3,7 @@ package com.jaysambhu.modulynx.core.user.repository;
 import com.jaysambhu.modulynx.core.user.model.Role;
 import com.jaysambhu.modulynx.core.user.model.RoleName;
 import com.jaysambhu.modulynx.core.user.model.RoleType;
+import com.jaysambhu.modulynx.core.user.model.ModuleType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -38,4 +39,27 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
      * @return true if a role exists with this name, false otherwise
      */
     boolean existsByName(RoleName name);
+
+    /**
+     * Find all roles for a specific module.
+     *
+     * @param moduleId The module ID to filter by
+     * @return List of roles for the specified module
+     */
+    List<Role> findByModuleId(Long moduleId);
+
+    /**
+     * Find all roles for a specific module type.
+     *
+     * @param moduleType The module type to filter by
+     * @return List of roles for the specified module type
+     */
+    List<Role> findByModuleType(ModuleType moduleType);
+
+    /**
+     * Find all global roles (roles not tied to any module).
+     *
+     * @return List of global roles
+     */
+    List<Role> findByModuleIsNull();
 }

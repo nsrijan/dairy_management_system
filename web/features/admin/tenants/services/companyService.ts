@@ -1,45 +1,125 @@
-interface CreateCompanyRequest {
-    name: string;
-    description: string;
-    isActive: boolean;
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_PATH = '/api/v1/tenants';
 
-interface CompanyResponse {
+export interface Company {
     id: string;
     name: string;
-    description: string;
-    isActive: boolean;
+    registrationNumber: string;
+    address: string;
+    description?: string;
+    active: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
-/**
- * Creates a new company for a tenant
- */
-export async function createCompany(token: string, tenantId: string, data: CreateCompanyRequest): Promise<CompanyResponse> {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const endpoint = `${apiUrl}/api/v1/tenants/${tenantId}/companies`;
+export interface CreateCompanyRequest {
+    name: string;
+    description?: string;
+    isActive: boolean;
+}
 
-    try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
+export interface UpdateCompanyRequest extends Partial<CreateCompanyRequest> { }
+
+export async function getCompanies(token: string, tenantId: string): Promise<Company[]> {
+    const response = await fetch(`${API_BASE_URL}${API_PATH}/${tenantId}/companies`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch companies');
+    }
+
+    return response.json();
+}
+
+export async function createCompany(
+    token: string,
+    tenantId: string,
+    data: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Company> {
+    const response = await fetch(`${API_BASE_URL}${API_PATH}/${tenantId}/companies`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create company');
+    }
+
+    return response.json();
+}
+
+export async function updateCompany(
+    token: string,
+    tenantId: string,
+    companyId: string,
+    data: UpdateCompanyRequest
+): Promise<Company> {
+    const response = await fetch(
+        `${API_BASE_URL}${API_PATH}/${tenantId}/companies/${companyId}`,
+        {
+            method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to create company');
+            body: JSON.stringify(data),
         }
+    );
 
-        const apiResponse = await response.json();
-        return apiResponse.data;
-    } catch (error: any) {
-        console.error('Error creating company:', error);
-        throw error;
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update company');
+    }
+
+    return response.json();
+}
+
+export async function updateCompanyStatus(
+    token: string,
+    tenantId: string,
+    companyId: string,
+    active: boolean
+): Promise<void> {
+    const response = await fetch(
+        `${API_BASE_URL}${API_PATH}/${tenantId}/companies/${companyId}/status`,
+        {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ active }),
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update company status');
+    }
+}
+
+export async function deleteCompany(token: string, tenantId: string, companyId: string): Promise<void> {
+    const response = await fetch(
+        `${API_BASE_URL}${API_PATH}/${tenantId}/companies/${companyId}`,
+        {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete company');
     }
 } 

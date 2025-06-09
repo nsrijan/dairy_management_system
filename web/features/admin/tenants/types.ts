@@ -64,12 +64,24 @@ export interface TenantResponse {
     id: string;
     name: string;
     subdomain: string;
-    active: boolean;
     moduleType: ModuleType;
+    active: boolean;
     currency: string;
     timezone: string;
     createdAt: string;
     updatedAt: string;
+    companyId?: string;
+    adminId?: string;
+    company?: {
+        name: string;
+        description: string;
+    };
+    admin?: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        username: string;
+    };
 }
 
 export enum ModuleType {
@@ -83,6 +95,7 @@ export interface TenantsListResponse {
     totalItems: number;
     totalPages: number;
     currentPage: number;
+    data: TenantResponse[];
 }
 
 export interface TenantUserResponse {
