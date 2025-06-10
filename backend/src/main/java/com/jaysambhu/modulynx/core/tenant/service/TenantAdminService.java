@@ -1,7 +1,10 @@
 package com.jaysambhu.modulynx.core.tenant.service;
 
+import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
 import com.jaysambhu.modulynx.core.tenant.dto.CreateTenantAdminRequest;
 import com.jaysambhu.modulynx.core.tenant.dto.TenantAdminResponse;
+import com.jaysambhu.modulynx.core.tenant.dto.TenantDto;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -36,4 +39,15 @@ public interface TenantAdminService {
      * @return The updated admin
      */
     TenantAdminResponse updateAdminStatus(Long tenantId, Long adminId, boolean isActive);
+
+    /**
+     * Set up a new tenant with company and admin
+     *
+     * @param tenantDto    The tenant data
+     * @param companyDto   The company data
+     * @param adminRequest The admin creation request
+     * @return The created admin response
+     */
+    @Transactional
+    TenantAdminResponse setupTenant(TenantDto tenantDto, CompanyDto companyDto, CreateTenantAdminRequest adminRequest);
 }

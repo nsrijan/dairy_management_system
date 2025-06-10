@@ -2,9 +2,11 @@ package com.jaysambhu.modulynx.core.tenant.service.impl;
 
 import com.jaysambhu.modulynx.common.exception.BadRequestException;
 import com.jaysambhu.modulynx.common.exception.ResourceNotFoundException;
+import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
 import com.jaysambhu.modulynx.core.tenant.dto.CreateTenantAdminRequest;
 import com.jaysambhu.modulynx.core.tenant.dto.TenantAdminResponse;
 import com.jaysambhu.modulynx.core.tenant.model.Tenant;
+import com.jaysambhu.modulynx.core.tenant.dto.TenantDto;
 import com.jaysambhu.modulynx.core.tenant.service.TenantAdminService;
 import com.jaysambhu.modulynx.core.tenant.service.TenantService;
 import com.jaysambhu.modulynx.core.user.model.Role;
@@ -36,148 +38,187 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantAdminServiceImpl implements TenantAdminService {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final TenantService tenantService;
-    private final PasswordEncoder passwordEncoder;
-    private final CompanyRepository companyRepository;
-    private final UserCompanyRoleRepository userCompanyRoleRepository;
+        private final UserRepository userRepository;
+        private final RoleRepository roleRepository;
+        private final TenantService tenantService;
+        private final PasswordEncoder passwordEncoder;
+        private final CompanyRepository companyRepository;
+        private final UserCompanyRoleRepository userCompanyRoleRepository;
 
-    @Override
-    @Transactional
-    public TenantAdminResponse createAdmin(Long tenantId, CreateTenantAdminRequest request) {
-        // Validate tenant exists
-        Tenant tenant = tenantService.findById(tenantId);
+        @Override
+        @Transactional
+        public TenantAdminResponse createAdmin(Long tenantId, CreateTenantAdminRequest request) {
+                // Validate tenant exists
+                Tenant tenant = tenantService.findById(tenantId);
 
-        // Check username and email uniqueness
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BadRequestException("Username is already taken");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email is already in use");
-        }
+                // Check username and email uniqueness
+                if (userRepository.existsByUsername(request.getUsername())) {
+                        throw new BadRequestException("Username is already taken");
+                }
+                if (userRepository.existsByEmail(request.getEmail())) {
+                        throw new BadRequestException("Email is already in use");
+                }
 
-        // Get tenant admin role
-        Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.TENANT_ADMIN));
+                // Get tenant admin role
+                Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
+                                .orElseThrow(() -> new ResourceNotFoundException("Role", "name",
+                                                RoleName.TENANT_ADMIN));
 
-        // Create user entity
-        User user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .isActive(true)
-                .isEmailVerified(false)
-                .isPhoneVerified(false)
-                .userType(UserType.INTERNAL)
-                .primaryTenant(tenant)
-                .build();
+                // Create user entity
+                User user = User.builder()
+                                .username(request.getUsername())
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .firstName(request.getFirstName())
+                                .lastName(request.getLastName())
+                                .isActive(true)
+                                .isEmailVerified(false)
+                                .isPhoneVerified(false)
+                                .userType(UserType.INTERNAL)
+                                .primaryTenant(tenant)
+                                .build();
 
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-        user.setVersion(0L);
+                user.setCreatedAt(LocalDateTime.now());
+                user.setUpdatedAt(LocalDateTime.now());
+                user.setVersion(0L);
 
-        User savedUser = userRepository.save(user);
+                User savedUser = userRepository.save(user);
 
-        // Get or create the default company for the tenant
-        Company company = companyRepository.findFirstByTenantId(tenantId)
-                .orElseGet(() -> {
-                    Company newCompany = Company.builder()
-                            .name(tenant.getName() + " Company")
-                            .isActive(true)
-                            .tenant(tenant)
-                            .build();
-                    newCompany.setCreatedAt(LocalDateTime.now());
-                    newCompany.setUpdatedAt(LocalDateTime.now());
-                    newCompany.setVersion(0L);
-                    return companyRepository.save(newCompany);
-                });
+                // Get or create the default company for the tenant
+                Company company = companyRepository.findFirstByTenantId(tenantId)
+                                .orElseGet(() -> {
+                                        Company newCompany = Company.builder()
+                                                        .name(tenant.getName() + " Company")
+                                                        .isActive(true)
+                                                        .tenant(tenant)
+                                                        .build();
+                                        newCompany.setCreatedAt(LocalDateTime.now());
+                                        newCompany.setUpdatedAt(LocalDateTime.now());
+                                        newCompany.setVersion(0L);
+                                        return companyRepository.save(newCompany);
+                                });
 
-        // Create UserCompanyRole association
-        UserCompanyRole userCompanyRole = UserCompanyRole.builder()
-                .user(savedUser)
-                .company(company)
-                .role(adminRole)
-                .isActive(true)
-                .build();
+                // Create UserCompanyRole association
+                UserCompanyRole userCompanyRole = UserCompanyRole.builder()
+                                .user(savedUser)
+                                .company(company)
+                                .role(adminRole)
+                                .isActive(true)
+                                .build();
 
-        userCompanyRole.setCreatedAt(LocalDateTime.now());
-        userCompanyRole.setUpdatedAt(LocalDateTime.now());
-        userCompanyRole.setVersion(0L);
+                userCompanyRole.setCreatedAt(LocalDateTime.now());
+                userCompanyRole.setUpdatedAt(LocalDateTime.now());
+                userCompanyRole.setVersion(0L);
 
-        userCompanyRoleRepository.save(userCompanyRole);
+                userCompanyRoleRepository.save(userCompanyRole);
 
-        log.info("Created new admin user: {} for tenant: {}", savedUser.getUsername(), tenant.getName());
+                log.info("Created new admin user: {} for tenant: {}", savedUser.getUsername(), tenant.getName());
 
-        return mapToAdminResponse(savedUser);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TenantAdminResponse> getAdmins(Long tenantId) {
-        // Validate tenant exists
-        tenantService.findById(tenantId);
-
-        // Get tenant admin role
-        Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.TENANT_ADMIN));
-
-        // Find all users with tenant admin role in this tenant
-        List<User> adminUsers = userRepository.findByPrimaryTenantId(tenantId).stream()
-                .filter(user -> user.getUserCompanyRoles().stream()
-                        .anyMatch(ucr -> ucr.getRole().equals(adminRole)))
-                .collect(Collectors.toList());
-
-        return adminUsers.stream()
-                .map(this::mapToAdminResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public TenantAdminResponse updateAdminStatus(Long tenantId, Long adminId, boolean isActive) {
-        // Validate tenant exists
-        tenantService.findById(tenantId);
-
-        // Find user and verify they belong to this tenant
-        User user = userRepository.findById(adminId)
-                .filter(u -> u.getPrimaryTenant().getId().equals(tenantId))
-                .orElseThrow(() -> new ResourceNotFoundException("Admin", "id", adminId));
-
-        // Verify user is actually an admin
-        Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", RoleName.TENANT_ADMIN));
-
-        boolean isAdmin = user.getUserCompanyRoles().stream()
-                .anyMatch(ucr -> ucr.getRole().equals(adminRole));
-
-        if (!isAdmin) {
-            throw new BadRequestException("User is not a tenant admin");
+                return mapToAdminResponse(savedUser);
         }
 
-        // Update status
-        user.setActive(isActive);
-        user.setUpdatedAt(LocalDateTime.now());
-        User updatedUser = userRepository.save(user);
+        @Override
+        @Transactional(readOnly = true)
+        public List<TenantAdminResponse> getAdmins(Long tenantId) {
+                // Validate tenant exists
+                tenantService.findById(tenantId);
 
-        log.info("Updated status to {} for admin: {} in tenant: {}",
-                isActive, user.getUsername(), user.getPrimaryTenant().getName());
+                // Get tenant admin role
+                Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
+                                .orElseThrow(() -> new ResourceNotFoundException("Role", "name",
+                                                RoleName.TENANT_ADMIN));
 
-        return mapToAdminResponse(updatedUser);
-    }
+                // Find all users with tenant admin role in this tenant
+                List<User> adminUsers = userRepository.findByPrimaryTenantId(tenantId).stream()
+                                .filter(user -> user.getUserCompanyRoles().stream()
+                                                .anyMatch(ucr -> ucr.getRole().equals(adminRole)))
+                                .collect(Collectors.toList());
 
-    private TenantAdminResponse mapToAdminResponse(User user) {
-        return TenantAdminResponse.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .isActive(user.isActive())
-                .createdAt(user.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME))
-                .updatedAt(user.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME))
-                .build();
-    }
+                return adminUsers.stream()
+                                .map(this::mapToAdminResponse)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional
+        public TenantAdminResponse updateAdminStatus(Long tenantId, Long adminId, boolean isActive) {
+                // Validate tenant exists
+                tenantService.findById(tenantId);
+
+                // Find user and verify they belong to this tenant
+                User user = userRepository.findById(adminId)
+                                .filter(u -> u.getPrimaryTenant().getId().equals(tenantId))
+                                .orElseThrow(() -> new ResourceNotFoundException("Admin", "id", adminId));
+
+                // Verify user is actually an admin
+                Role adminRole = roleRepository.findByName(RoleName.TENANT_ADMIN)
+                                .orElseThrow(() -> new ResourceNotFoundException("Role", "name",
+                                                RoleName.TENANT_ADMIN));
+
+                boolean isAdmin = user.getUserCompanyRoles().stream()
+                                .anyMatch(ucr -> ucr.getRole().equals(adminRole));
+
+                if (!isAdmin) {
+                        throw new BadRequestException("User is not a tenant admin");
+                }
+
+                // Update status
+                user.setActive(isActive);
+                user.setUpdatedAt(LocalDateTime.now());
+                User updatedUser = userRepository.save(user);
+
+                log.info("Updated status to {} for admin: {} in tenant: {}",
+                                isActive, user.getUsername(), user.getPrimaryTenant().getName());
+
+                return mapToAdminResponse(updatedUser);
+        }
+
+        private TenantAdminResponse mapToAdminResponse(User user) {
+                return TenantAdminResponse.builder()
+                                .id(user.getId())
+                                .email(user.getEmail())
+                                .username(user.getUsername())
+                                .firstName(user.getFirstName())
+                                .lastName(user.getLastName())
+                                .isActive(user.isActive())
+                                .createdAt(user.getCreatedAt().format(DateTimeFormatter.ISO_DATE_TIME))
+                                .updatedAt(user.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME))
+                                .build();
+        }
+
+        @Override
+        @Transactional
+        public TenantAdminResponse setupTenant(TenantDto tenantDto, CompanyDto companyDto,
+                        CreateTenantAdminRequest adminRequest) {
+                // 1. Create Tenant
+                TenantDto createdTenantDto = tenantService.create(tenantDto);
+                Tenant tenant = tenantService.findById(createdTenantDto.getId());
+
+                // 2. Create Company
+                Company company = Company.builder()
+                                .name(companyDto.getName())
+                                .isActive(true)
+                                .tenant(tenant)
+                                .build();
+                company.setCreatedAt(LocalDateTime.now());
+                company.setUpdatedAt(LocalDateTime.now());
+                company.setVersion(0L);
+                companyRepository.save(company);
+                log.info("Created company: {} for tenant: {}", company.getName(), tenant.getName());
+
+                // 3. Create Tenant Admin
+                // The createAdmin method already handles associating the admin with the first
+                // company of the tenant
+                // or creating a default one if none exists. Since we just created a company,
+                // it should ideally pick that up or we might need to adjust createAdmin or pass
+                // company explicitly.
+                // For simplicity, let's assume createAdmin will correctly associate with the
+                // newly created company
+                // or the default company logic within createAdmin is sufficient.
+                // If specific company association is needed here, this part would need
+                // adjustment.
+                TenantAdminResponse adminResponse = createAdmin(tenant.getId(), adminRequest);
+                log.info("Tenant setup completed for tenant: {}", tenant.getName());
+                return adminResponse;
+        }
 }

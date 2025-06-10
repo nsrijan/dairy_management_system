@@ -1,12 +1,12 @@
 import React from 'react';
 import { Tenant } from '../../types';
 
-interface TenantInfoProps {
+interface TenantInfoCardProps {
     tenant: Tenant;
     onStatusChange?: (status: Tenant['status']) => void;
 }
 
-const TenantInfo = ({ tenant, onStatusChange }: TenantInfoProps) => {
+const TenantInfoCard = ({ tenant, onStatusChange }: TenantInfoCardProps) => {
     const statusColors = {
         active: 'bg-green-100 text-green-800',
         inactive: 'bg-gray-100 text-gray-800',
@@ -129,4 +129,4 @@ const TenantInfo = ({ tenant, onStatusChange }: TenantInfoProps) => {
     );
 };
 
-export default TenantInfo; 
+export default TenantInfoCard; 

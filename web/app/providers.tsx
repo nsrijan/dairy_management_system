@@ -1,5 +1,8 @@
 'use client';
 
+import * as React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { logoutUser } from '@/features/auth/login/loginService';
 
@@ -41,10 +44,10 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
@@ -176,10 +179,38 @@ function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Query Provider
+function QueryProvider({ children }: { children: ReactNode }) {
+  const queryClient = React.useMemo(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 1000,
+            gcTime: 10 * 60 * 1000,
+            refetchOnWindowFocus: false,
+            retry: 1,
+          },
+        },
+      }),
+    []
+  );
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
+}
+
+// Combined Providers
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <ThemeProvider>{children}</ThemeProvider>
+      <QueryProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </QueryProvider>
     </AuthProvider>
   );
 } 

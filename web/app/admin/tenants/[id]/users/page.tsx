@@ -1,12 +1,19 @@
 'use client';
 
 import { useAuth } from '@/app/providers';
-import AdminManagement from '@/features/tenant/components/admin/AdminManagement';
+import AdminManagement from '@/features/admin/tenants/components/admin/AdminManagement';
 
-export default function TenantAdminsPage({ params }: { params: { id: string } }) {
-    const auth = useAuth();
+interface UsersPageProps {
+    params: {
+        id: string;
+    };
+}
 
-    if (!auth.token) {
+export default function UsersPage({ params }: UsersPageProps) {
+    const { token } = useAuth();
+    const { id } = params;
+
+    if (!token) {
         return (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 Authentication token not found
@@ -21,10 +28,7 @@ export default function TenantAdminsPage({ params }: { params: { id: string } })
                 <p className="text-gray-500">Manage administrators for this tenant</p>
             </div> */}
 
-            <AdminManagement
-                tenantId={params.id}
-                token={auth.token}
-            />
+            <AdminManagement tenantId={id} token={token} />
         </div>
     );
 } 

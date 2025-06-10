@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import TenantForm from '@/features/tenant/components/TenantForm';
+import TenantForm from '@/features/admin/tenants/components/TenantForm';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

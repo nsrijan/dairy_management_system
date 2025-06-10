@@ -12,7 +12,7 @@ export interface Module {
     name: string;
     code: string;
     description: string;
-    icon: string;
+    icon?: string;
     active: boolean;
     features: Feature[];
     createdAt: string;
@@ -44,7 +44,11 @@ export interface PageableResponse<T> {
     };
 }
 
-export interface ModulesListResponse extends PageableResponse<Module> { }
+export interface ModulesListResponse {
+    success: boolean;
+    message: string;
+    data: Module[];
+}
 
 export interface ApiResponse<T> {
     success: boolean;
@@ -53,11 +57,9 @@ export interface ApiResponse<T> {
 }
 
 export interface ModuleFormData {
-    id?: number;
     name: string;
     code: string;
     description: string;
-    icon: string;
-    active?: boolean;
-    features: Feature[];
+    icon?: string;
+    active: boolean;
 } 

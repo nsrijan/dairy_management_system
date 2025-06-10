@@ -120,4 +120,22 @@ public interface UserCompanyRoleRepository extends JpaRepository<UserCompanyRole
     @Query("DELETE FROM UserCompanyRole ucr WHERE ucr.user.id = :userId AND ucr.company.id = :companyId AND ucr.role.id = :roleId")
     int deleteByUserIdAndCompanyIdAndRoleId(@Param("userId") Long userId, @Param("companyId") Long companyId,
             @Param("roleId") Long roleId);
+
+    /**
+     * Count the number of admins in a company.
+     *
+     * @param companyId The company ID
+     * @return The number of admins in the company
+     */
+    @Query("SELECT COUNT(ucr) FROM UserCompanyRole ucr WHERE ucr.company.id = :companyId AND ucr.role.name = 'TENANT_ADMIN'")
+    int countAdminsByCompanyId(@Param("companyId") Long companyId);
+
+    /**
+     * Count the number of users in a company.
+     *
+     * @param companyId The company ID
+     * @return The number of users in the company
+     */
+    @Query("SELECT COUNT(ucr) FROM UserCompanyRole ucr WHERE ucr.company.id = :companyId")
+    int countUsersByCompanyId(@Param("companyId") Long companyId);
 }

@@ -12,10 +12,11 @@ export type Domain = keyof typeof Domains;
 export const DomainRoles = {
     [Domains.SYSTEM]: {
         ADMIN: 'SYSTEM_ADMIN',
-        TENANT_ADMIN: 'TENANT_ADMIN',
         TENANT_MANAGER: 'TENANT_MANAGER',
+
     },
     [Domains.DAIRY]: {
+        TENANT_ADMIN: 'TENANT_ADMIN',
         ADMIN: 'DAIRY_ADMIN',
         MANAGER: 'DAIRY_MANAGER',
         FARMER: 'DAIRY_FARMER',
