@@ -4,12 +4,17 @@ import com.jaysambhu.modulynx.common.exception.BadRequestException;
 import com.jaysambhu.modulynx.common.service.AbstractTenantAwareService;
 import com.jaysambhu.modulynx.context.TenantContext;
 import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
+import com.jaysambhu.modulynx.core.company.dto.CompanyWithAdminCountDto;
 import com.jaysambhu.modulynx.core.company.exception.CompanyNotFoundException;
 import com.jaysambhu.modulynx.core.company.model.Company;
 import com.jaysambhu.modulynx.core.company.repository.CompanyRepository;
 import com.jaysambhu.modulynx.core.company.service.CompanyService;
 import com.jaysambhu.modulynx.core.tenant.model.Tenant;
 import com.jaysambhu.modulynx.core.tenant.service.TenantService;
+import com.jaysambhu.modulynx.core.user.model.User;
+import com.jaysambhu.modulynx.core.user.model.UserCompanyRole;
+import com.jaysambhu.modulynx.core.user.repository.UserCompanyRoleRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +33,7 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
 
     private final CompanyRepository companyRepository;
     private final TenantService tenantService;
+    private final UserCompanyRoleRepository userCompanyRoleRepository;
 
     @Override
     @Transactional
@@ -170,4 +176,49 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
                 .updatedBy(company.getUpdatedBy())
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyDto> getCompaniesByTenantId(Long tenantId) {
+        // This method is intended for SYSTEM_ADMIN to view companies of any tenant
+        if (!TenantContext.isSuperAdmin()) {
+            // Although the controller has @PreAuthorize, adding a check here for safety
+            throw new SecurityException("Access denied: Only SYSTEM_ADMIN can view companies by tenant ID");
+        }
+        return companyRepository.findByTenantId(tenantId).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyDto> getAllUsersByCompanyId(Long companyId) {
+        return companyRepository.findById(companyId).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyWithAdminCountDto> getAllCompaniesWithAdminCountWithTenantId(Long tenantId) {
+        // pull all companies with tenant id
+        List<Company> companies = companyRepository.findByTenantId(tenantId);
+
+        // for each company, pull all admins
+        return companies.stream().map(company -> {
+            int adminCount = userCompanyRoleRepository.countAdminsByCompanyId(company.getId());
+            int userCount = userCompanyRoleRepository.countUsersByCompanyId(company.getId());
+
+            return CompanyWithAdminCountDto.builder()
+                    .companyId(company.getId())
+                    .companyName(company.getName())
+                    .createdAt(company.getCreatedAt())
+                    .updatedAt(company.getUpdatedAt())
+                    .adminCount(adminCount)
+                    .userCount(userCount)
+                    .isActive(company.isActive())
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
 }

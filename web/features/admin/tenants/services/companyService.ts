@@ -1,5 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const API_PATH = '/api/v1/tenants';
+const API_PATH = '/api/v1/companies';
 
 export interface Company {
     id: string;
@@ -18,10 +18,20 @@ export interface CreateCompanyRequest {
     isActive: boolean;
 }
 
+export interface CompanyWithAdminCount {
+    companyId: string;
+    companyName: string;
+    createdAt: string;
+    updatedAt: string;
+    adminCount: number;
+    userCount: number;
+    isActive: boolean;
+}
+
 export interface UpdateCompanyRequest extends Partial<CreateCompanyRequest> { }
 
 export async function getCompanies(token: string, tenantId: string): Promise<Company[]> {
-    const response = await fetch(`${API_BASE_URL}${API_PATH}/${tenantId}/companies`, {
+    const response = await fetch(`${API_BASE_URL}${API_PATH}/tenant/${tenantId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -30,6 +40,22 @@ export async function getCompanies(token: string, tenantId: string): Promise<Com
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to fetch companies');
+    }
+
+    return response.json();
+}
+
+//getcompanies with admin count
+export async function getCompaniesWithAdminCount(token: string, tenantId: string): Promise<CompanyWithAdminCount[]> {
+    const response = await fetch(`${API_BASE_URL}${API_PATH}/tenant/${tenantId}/with-admin-count`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch companies with admin count');
     }
 
     return response.json();

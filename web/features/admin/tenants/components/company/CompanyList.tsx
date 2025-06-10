@@ -1,6 +1,6 @@
 'use client';
 
-import { Company } from '../../services/companyService';
+import { CompanyWithAdminCount } from '../../services/companyService';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -14,7 +14,7 @@ import {
 import { format } from 'date-fns';
 
 interface CompanyListProps {
-    companies: Company[];
+    companies: CompanyWithAdminCount[];
     onStatusChange: (companyId: string, active: boolean) => Promise<void>;
     isLoading: boolean;
 }
@@ -43,8 +43,8 @@ export function CompanyList({ companies, onStatusChange, isLoading }: CompanyLis
             <TableHeader>
                 <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Registration Number</TableHead>
-                    <TableHead>Address</TableHead>
+                    <TableHead>Admin Count</TableHead>
+                    <TableHead>User Count</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead>Updated At</TableHead>
@@ -52,27 +52,27 @@ export function CompanyList({ companies, onStatusChange, isLoading }: CompanyLis
             </TableHeader>
             <TableBody>
                 {companies.map((company) => (
-                    <TableRow key={company.id}>
-                        <TableCell>{company.name}</TableCell>
-                        <TableCell>{company.registrationNumber}</TableCell>
-                        <TableCell>{company.address}</TableCell>
+                    <TableRow key={company.companyId}>
+                        <TableCell>{company.companyName}</TableCell>
+                        <TableCell>{company.adminCount}</TableCell>
+                        <TableCell>{company.userCount}</TableCell>
                         <TableCell>
                             <div className="flex items-center space-x-2">
                                 <Switch
-                                    id={`status-${company.id}`}
-                                    checked={company.active}
-                                    onCheckedChange={(checked) => onStatusChange(company.id, checked)}
+                                    id={`status-${company.companyId}`}
+                                    checked={company.isActive}
+                                    onCheckedChange={(checked) => onStatusChange(company.companyId, checked)}
                                 />
-                                <Label htmlFor={`status-${company.id}`}>
-                                    {company.active ? 'Active' : 'Inactive'}
+                                <Label htmlFor={`status-${company.companyId}`}>
+                                    {company.isActive ? 'Active' : 'Inactive'}
                                 </Label>
                             </div>
                         </TableCell>
                         <TableCell>
-                            {format(new Date(company.createdAt), 'MMM d, yyyy HH:mm')}
+                            {format(new Date(company.createdAt), 'MMM d, yyyy')}
                         </TableCell>
                         <TableCell>
-                            {format(new Date(company.updatedAt), 'MMM d, yyyy HH:mm')}
+                            {format(new Date(company.updatedAt), 'MMM d, yyyy')}
                         </TableCell>
                     </TableRow>
                 ))}

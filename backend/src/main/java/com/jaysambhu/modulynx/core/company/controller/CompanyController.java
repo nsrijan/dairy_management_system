@@ -2,6 +2,7 @@ package com.jaysambhu.modulynx.core.company.controller;
 
 import com.jaysambhu.modulynx.common.response.GlobalApiResponse;
 import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
+import com.jaysambhu.modulynx.core.company.dto.CompanyWithAdminCountDto;
 import com.jaysambhu.modulynx.core.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,5 +60,21 @@ public class CompanyController {
                 .message("Companies retrieved successfully")
                 .data(companies)
                 .build());
+    }
+
+    @GetMapping("/tenant/{tenantId}")
+    public ResponseEntity<List<CompanyDto>> getAllByTenant(@PathVariable Long tenantId) {
+        return ResponseEntity.ok(companyService.getCompaniesByTenantId(tenantId));
+    }
+
+    @GetMapping("/{companyId}/users")
+    public ResponseEntity<List<CompanyDto>> getAllUsersByCompanyId(@PathVariable Long companyId) {
+        return ResponseEntity.ok(companyService.getAllUsersByCompanyId(companyId));
+    }
+
+    @GetMapping("/tenant/{tenantId}/with-admin-count")
+    public ResponseEntity<List<CompanyWithAdminCountDto>> getAllCompaniesWithAdminCountWithTenantId(
+            @PathVariable Long tenantId) {
+        return ResponseEntity.ok(companyService.getAllCompaniesWithAdminCountWithTenantId(tenantId));
     }
 }

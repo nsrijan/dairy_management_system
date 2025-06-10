@@ -1,6 +1,8 @@
 package com.jaysambhu.modulynx.core.company.service;
 
 import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
+import com.jaysambhu.modulynx.core.company.dto.CompanyWithAdminCountDto;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -62,4 +64,27 @@ public interface CompanyService {
      * @return List of matching companies
      */
     List<CompanyDto> searchCompaniesByName(String name);
+
+    /**
+     * Get all companies for a specific tenant (System Admin only)
+     *
+     * @param tenantId The ID of the tenant
+     * @return List of companies for the specified tenant
+     */
+    List<CompanyDto> getCompaniesByTenantId(Long tenantId);
+
+    /**
+     * Get all users belonging to a specific company.
+     *
+     * @param companyId The ID of the company
+     * @return List of users belonging to the company
+     */
+    List<CompanyDto> getAllUsersByCompanyId(Long companyId);
+
+    /**
+     * Get all companies with admin count for the current tenant with id
+     * 
+     * @return List of companies with admin count
+     */
+    List<CompanyWithAdminCountDto> getAllCompaniesWithAdminCountWithTenantId(Long tenantId);
 }

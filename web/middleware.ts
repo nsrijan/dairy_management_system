@@ -74,6 +74,7 @@ function getUserRoleFromToken(token: string | undefined): string {
     const payload = JSON.parse(atob(token.split('.')[1]));
     // Get the first role from the roles array and remove the ROLE_ prefix
     if (payload.roles && payload.roles.length > 0) {
+      console.log('User role:', payload.roles[0].replace('ROLE_', ''));
       return payload.roles[0].replace('ROLE_', '');
     }
     return '';
@@ -87,6 +88,7 @@ function getDashboardByRole(role: string): string {
   if (role.includes('DAIRY_')) return '/dairy/dashboard';
   if (role.includes('POULTRY_')) return '/poultry/dashboard';
   if (role.includes('SYSTEM_')) return '/admin';
+  if (role.includes('TENANT_')) return '/tenant';
   return '/dashboard';
 }
 

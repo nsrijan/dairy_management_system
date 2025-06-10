@@ -19,8 +19,9 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CompanyList } from '../company/CompanyList';
+import { CompanyContent } from '../company/CompanyContent';
 import { TenantModuleList } from '../modules/TenantModuleList';
+import { UserList } from '../users/UserList';
 
 interface TenantDetailsProps {
     tenantId: string;
@@ -182,12 +183,13 @@ export function TenantDetails({ tenantId }: TenantDetailsProps) {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="modules" className="mt-6">
-                    <TenantModuleList tenantId={tenantId} />
+                <TabsContent value="companies" className="mt-6">
+                    <CompanyContent tenantId={tenantId} token={token!} />
                 </TabsContent>
 
-                <TabsContent value="companies" className="mt-6">
-                    <CompanyList tenantId={tenantId} />
+                <TabsContent value="modules" className="mt-6">
+                    {/* instead of using the TenantModuleList, we will use the UserList component */}
+                    <UserList tenantId={tenantId} />
                 </TabsContent>
 
                 <TabsContent value="settings" className="mt-6">

@@ -5,7 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { CompanyFormDialog } from './CompanyFormDialog';
 import { CompanyList } from './CompanyList';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Company, createCompany, getCompanies, updateCompanyStatus } from '../../services/companyService';
+import { Company, createCompany, getCompanies, getCompaniesWithAdminCount, updateCompanyStatus } from '../../services/companyService';
+import { CompanyWithAdminCount } from '../../services/companyService';
 
 interface CompanyContentProps {
     tenantId: string;
@@ -13,7 +14,7 @@ interface CompanyContentProps {
 }
 
 export function CompanyContent({ tenantId, token }: CompanyContentProps) {
-    const [companies, setCompanies] = useState<Company[]>([]);
+    const [companies, setCompanies] = useState<CompanyWithAdminCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
@@ -22,7 +23,7 @@ export function CompanyContent({ tenantId, token }: CompanyContentProps) {
         try {
             setLoading(true);
             setError(null);
-            const data = await getCompanies(token, tenantId);
+            const data = await getCompaniesWithAdminCount(token, tenantId);
             setCompanies(data);
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to load companies';

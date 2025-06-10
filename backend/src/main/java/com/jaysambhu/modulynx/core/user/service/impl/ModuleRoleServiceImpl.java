@@ -25,24 +25,25 @@ public class ModuleRoleServiceImpl implements ModuleRoleService {
     @Override
     @Transactional
     public List<Role> createModuleRoles(Module module) {
-        List<Role> roles = new ArrayList<>();
+        // List<Role> roles = new ArrayList<>();
 
-        // Create roles based on module type
-        switch (module.getModuleType()) {
-            case DAIRY:
-                roles.addAll(createDairyRoles(module));
-                break;
-            case POTTERY:
-                // TODO: Implement when pottery roles are defined
-                break;
-            case GARMENTS:
-                // TODO: Implement when garments roles are defined
-                break;
-            default:
-                log.warn("Unknown module type: {}", module.getModuleType());
-        }
+        // // Create roles based on module type
+        // switch (module.getModuleName()) {
+        // case DAIRY:
+        // roles.addAll(createDairyRoles(module));
+        // break;
+        // case POTTERY:
+        // // TODO: Implement when pottery roles are defined
+        // break;
+        // case GARMENTS:
+        // // TODO: Implement when garments roles are defined
+        // break;
+        // default:
+        // log.warn("Unknown module type: {}", module.getModuleType());
+        // }
 
-        return roles;
+        // return roles;
+        return null;
     }
 
     @Override
