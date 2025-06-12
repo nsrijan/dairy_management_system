@@ -1,4 +1,4 @@
-# Component Architecture: Building with Micro-Components
+a# Component Architecture: Building with Micro-Components
 
 ## Overview
 

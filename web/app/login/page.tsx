@@ -24,14 +24,10 @@ export default function LoginPage() {
   // Check if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      // Check if user is SYSTEM_ADMIN
-      if (user?.role === 'SYSTEM_ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
-      }
+      // If already authenticated, refresh to let middleware handle redirection
+      router.refresh();
     }
-  }, [isAuthenticated, router, user]);
+  }, [isAuthenticated, router]);
 
   // Handle navigation after successful login
   useEffect(() => {
@@ -81,7 +77,7 @@ export default function LoginPage() {
       console.log('Login successful, received token:', response.token.substring(0, 15) + '...');
       console.log('User role:', response.user.role);
 
-      const isManagerRole = response.user.role === 'TENANT_MANAGER' || response.user.role === 'SYSTEM_ADMIN';
+      const isManagerRole = response.user.role === 'TENANT_ADMIN' || response.user.role === 'TENANT_MANAGER' || response.user.role === 'SYSTEM_ADMIN';
 
       // Check if user is trying to login to tenant subdomain as a tenant manager
       if (subdomain && isManagerRole) {

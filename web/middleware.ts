@@ -30,40 +30,71 @@ export async function middleware(request: NextRequest) {
 
   // If it's a public route, allow access
   if (isPublicRoute) {
-    // Redirect authenticated users trying to access login/register to dashboard
-    if (isAuthenticated && (pathname.includes('/login') || pathname.includes('/register'))) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (isAuthenticated) {
+      const userSpecificDashboard = getDashboardByRole(userRole);
+
+      // If authenticated user is on login/register, or on another public route (like '/')
+      // that is not their designated dashboard, redirect them.
+      if (
+        pathname.includes('/login') ||
+        pathname.includes('/register') ||
+        (pathname === '/' && pathname !== userSpecificDashboard)
+      ) {
+        console.log(`Authenticated user on public route ${pathname}. Redirecting to their dashboard: ${userSpecificDashboard}`);
+        return NextResponse.redirect(new URL(userSpecificDashboard, request.url));
+      }
+      // If authenticated user is on a public route that IS their correct dashboard (e.g. dashboard is '/' and they are on '/'), allow.
+      return NextResponse.next();
+    } else {
+      // Not authenticated, on a public route. Allow access.
+      return NextResponse.next();
     }
-    return NextResponse.next();
   }
 
   // If not authenticated and trying to access protected route, redirect to login
   if (!isAuthenticated) {
+    console.log('User not authenticated, redirecting to login for protected path:', pathname);
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // From here, user is authenticated and on a protected route.
   // Get route access requirements
   const routeAccess = getRouteAccess(pathname);
-  console.log('Route access requirements:', routeAccess);
+  console.log('Route access requirements for', pathname, ':', routeAccess);
 
-  // If no specific access requirements, allow authenticated users
+  // If no specific access requirements for this protected route (e.g., /dashboard)
   if (!routeAccess) {
-    console.log('No specific access requirements found');
+    console.log('No specific access requirements found for protected path:', pathname);
+    const correctDashboard = getDashboardByRole(userRole);
+    // If user is on a page with no rules and it's not their correct dashboard, redirect them.
+    if (pathname !== correctDashboard) {
+      console.log(`User with role ${userRole} on ${pathname} (no specific rules), but their correct dashboard is ${correctDashboard}. Redirecting.`);
+      return NextResponse.redirect(new URL(correctDashboard, request.url));
+    }
+    // Allow access if they are already on their correct dashboard or another page with no rules they landed on.
+    console.log(`Allowing access to ${pathname} for role ${userRole} as it has no specific rules and matches their dashboard or is a generic page.`);
     return NextResponse.next();
   }
 
   // Check if user has required role for the route
-  const hasRequiredRole = routeAccess.roles.includes(userRole) ||
-    isDomainRole(userRole, routeAccess.domain);
-  console.log('Has required role:', hasRequiredRole, 'Required roles:', routeAccess.roles, 'User role:', userRole);
+  const roleIncludesCheck = routeAccess.roles.includes(userRole);
+  const domainRoleCheck = isDomainRole(userRole, routeAccess.domain);
+  const hasRequiredRole = roleIncludesCheck || domainRoleCheck;
+
+  console.log('=== ROLE CHECK DEBUG ===');
+  console.log('Path:', pathname, 'User role:', userRole, 'Required roles:', routeAccess.roles, 'Route domain:', routeAccess.domain);
+  console.log('Role includes check:', roleIncludesCheck, 'Domain role check:', domainRoleCheck, 'Has required role:', hasRequiredRole);
+  console.log('========================');
 
   if (!hasRequiredRole) {
-    console.log('User does not have required role, redirecting to dashboard');
+    console.log(`User role ${userRole} does not have required role for ${pathname}.`);
     // Redirect to appropriate dashboard based on user's role
     const redirectPath = getDashboardByRole(userRole);
+    console.log(`Redirecting to their correct dashboard: ${redirectPath}`);
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
+  console.log(`User role ${userRole} has required role for ${pathname}. Allowing access.`);
   return NextResponse.next();
 }
 
@@ -85,10 +116,23 @@ function getUserRoleFromToken(token: string | undefined): string {
 
 // Helper function to determine dashboard based on role
 function getDashboardByRole(role: string): string {
+  // Enhanced logging to inspect the role string
+  console.log(`[getDashboardByRole] Determining dashboard for role: "${role}" (length: ${role.length})`);
+  const isStrictlyTenantAdmin = role === 'TENANT_ADMIN';
+  console.log(`[getDashboardByRole] Is role strictly 'TENANT_ADMIN'? ${isStrictlyTenantAdmin}`);
+  const doesIncludeTenant = role.includes('TENANT_');
+  console.log(`[getDashboardByRole] Does role include 'TENANT_'? ${doesIncludeTenant}`);
+
   if (role.includes('DAIRY_')) return '/dairy/dashboard';
   if (role.includes('POULTRY_')) return '/poultry/dashboard';
   if (role.includes('SYSTEM_')) return '/admin';
-  if (role.includes('TENANT_')) return '/tenant';
+
+  if (role.includes('TENANT_') || role === 'TENANT_ADMIN' || role === 'TENANT_MANAGER') {
+    console.log('[getDashboardByRole] Role matches tenant pattern, returning /tenant');
+    return '/tenant';
+  }
+
+  console.log('[getDashboardByRole] No specific role match, returning /dashboard');
   return '/dashboard';
 }
 
@@ -98,7 +142,7 @@ export const config = {
     '/admin/:path*',
     '/dairy/:path*',
     '/poultry/:path*',
-    '/dashboard/:path*',
+    '/dashboard/:path*', // Ensure /dashboard is matched if it's a protected route
     '/tenant/:path*',
     '/login',
     '/register',
