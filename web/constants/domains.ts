@@ -13,7 +13,6 @@ export const DomainRoles = {
     [Domains.SYSTEM]: {
         ADMIN: 'SYSTEM_ADMIN',
         TENANT_MANAGER: 'TENANT_MANAGER',
-
     },
     [Domains.DAIRY]: {
         TENANT_ADMIN: 'TENANT_ADMIN',
@@ -43,7 +42,7 @@ export const RouteAccess: Record<string, { domain: Domain; roles: string[] }> = 
     },
     '/tenant/**': {
         domain: Domains.SYSTEM,
-        roles: [DomainRoles[Domains.SYSTEM].TENANT_ADMIN, DomainRoles[Domains.SYSTEM].TENANT_MANAGER],
+        roles: [DomainRoles[Domains.SYSTEM].TENANT_MANAGER, DomainRoles[Domains.SYSTEM].TENANT_ADMIN],
     },
 
     // Dairy domain routes
