@@ -18,22 +18,33 @@ import {
     BarChart3,
     Zap
 } from 'lucide-react';
-import { StatCard } from '@/features/dashboard/components/StatCard';
+import { StatCard } from './StatCard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/app/providers';
-import { useCompanies } from '../hooks/useCompanies';
+import { useCompanies, type Company } from '../hooks/useCompanies';
 import { useRouter } from 'next/navigation';
 
-export function TenantDashboardContent() {
-    const { user } = useAuth();
-    const { companies, isLoading: companiesLoading } = useCompanies();
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+}
+
+interface TenantAdminDashboardProps {
+    user: User;
+    tenant?: string | null;
+}
+
+export function TenantAdminDashboard({ user, tenant }: TenantAdminDashboardProps) {
+    const { data: companies, isLoading: companiesLoading } = useCompanies();
     const router = useRouter();
 
     // Calculate stats from real data
     const totalCompanies = companies?.length || 0;
-    const activeCompanies = companies?.filter(c => c.isActive).length || 0;
+    const activeCompanies = companies?.filter((c: Company) => c.isActive).length || 0;
 
     // Mock data for demonstration - in real app, fetch from API
     const dashboardStats = {
@@ -278,9 +289,9 @@ export function TenantDashboardContent() {
                             <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200">
                                 <div className="flex-shrink-0 relative">
                                     <div className={`p-2 rounded-full ${activity.type === 'company' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                                            activity.type === 'user' ? 'bg-green-100 dark:bg-green-900/30' :
-                                                activity.type === 'inventory' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                                                    'bg-purple-100 dark:bg-purple-900/30'
+                                        activity.type === 'user' ? 'bg-green-100 dark:bg-green-900/30' :
+                                            activity.type === 'inventory' ? 'bg-orange-100 dark:bg-orange-900/30' :
+                                                'bg-purple-100 dark:bg-purple-900/30'
                                         }`}>
                                         {activity.type === 'company' && <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                                         {activity.type === 'user' && <Users className="h-4 w-4 text-green-600 dark:text-green-400" />}
@@ -357,4 +368,4 @@ export function TenantDashboardContent() {
             </Card>
         </div>
     );
-} 
+}

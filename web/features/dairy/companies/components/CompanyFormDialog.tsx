@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useCreateCompany, useUpdateCompany } from '@/features/tenant/hooks/useCompanies';
 
 const companySchema = z.object({
     name: z.string().min(1, 'Company name is required').max(100, 'Name too long'),
@@ -30,23 +29,31 @@ type CompanyFormData = z.infer<typeof companySchema>;
 interface CompanyFormDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    mode: 'create' | 'edit';
-    company?: any;
+    onSubmit: (data: CompanyFormData) => Promise<void>;
+    isLoading?: boolean;
+    title: string;
+    description: string;
+    initialData?: Partial<CompanyFormData>;
 }
 
-export function CompanyFormDialog({ open, onOpenChange, mode, company }: CompanyFormDialogProps) {
-    const createCompany = useCreateCompany();
-    const updateCompany = useUpdateCompany();
-
+export function CompanyFormDialog({
+    open,
+    onOpenChange,
+    onSubmit,
+    isLoading = false,
+    title,
+    description,
+    initialData
+}: CompanyFormDialogProps) {
     const {
         register,
         handleSubmit,
         reset,
         setValue,
         watch,
-        formState: { errors, isSubmitting },
+        formState: { errors },
     } = useForm<CompanyFormData>({
-        resolver: zodResolver(companySchema) as any,
+        resolver: zodResolver(companySchema),
         defaultValues: {
             name: '',
             description: '',
@@ -56,62 +63,40 @@ export function CompanyFormDialog({ open, onOpenChange, mode, company }: Company
 
     const isActive = watch('isActive');
 
-    // Reset form when dialog opens/closes or company changes
+    // Reset form when dialog opens/closes or initialData changes
     useEffect(() => {
-        if (open && mode === 'edit' && company) {
-            setValue('name', company.name);
-            setValue('description', company.description || '');
-            setValue('isActive', company.isActive);
-        } else if (open && mode === 'create') {
-            reset({
-                name: '',
-                description: '',
-                isActive: true,
-            });
-        }
-    }, [open, mode, company, setValue, reset]);
-
-    const onSubmit = async (data: CompanyFormData) => {
-        try {
-            if (mode === 'create') {
-                await createCompany.mutateAsync(data);
+        if (open) {
+            if (initialData) {
+                setValue('name', initialData.name || '');
+                setValue('description', initialData.description || '');
+                setValue('isActive', initialData.isActive ?? true);
             } else {
-                await updateCompany.mutateAsync({ id: company.id, data });
+                reset({
+                    name: '',
+                    description: '',
+                    isActive: true,
+                });
             }
-            onOpenChange(false);
-            reset();
+        }
+    }, [open, initialData, setValue, reset]);
+
+    const handleFormSubmit = async (data: CompanyFormData) => {
+        try {
+            await onSubmit(data);
         } catch (error) {
-            // Error is handled by the mutation
+            // Error handling is done by parent component
         }
     };
-
-    const isLoading = createCompany.isPending || updateCompany.isPending;
-    const error = createCompany.error || updateCompany.error;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>
-                        {mode === 'create' ? 'Add New Company' : 'Edit Company'}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {mode === 'create'
-                            ? 'Create a new company for your organization.'
-                            : 'Update the company information.'
-                        }
-                    </DialogDescription>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertDescription>
-                                {error.message || 'An error occurred. Please try again.'}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
+                <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Company Name *</Label>
                         <Input
@@ -165,7 +150,7 @@ export function CompanyFormDialog({ open, onOpenChange, mode, company }: Company
                             Cancel
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? 'Saving...' : mode === 'create' ? 'Create Company' : 'Update Company'}
+                            {isLoading ? 'Saving...' : initialData ? 'Update Company' : 'Create Company'}
                         </Button>
                     </div>
                 </form>

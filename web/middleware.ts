@@ -123,9 +123,29 @@ function getDashboardByRole(role: string): string {
   const doesIncludeTenant = role.includes('TENANT_');
   console.log(`[getDashboardByRole] Does role include 'TENANT_'? ${doesIncludeTenant}`);
 
-  if (role.includes('DAIRY_')) return '/dairy/dashboard';
-  if (role.includes('POULTRY_')) return '/poultry/dashboard';
-  if (role.includes('SYSTEM_')) return '/admin';
+  // Specific checks for tenant-related roles first
+  if (role === 'TENANT_ADMIN' || role === 'TENANT_MANAGER') {
+    console.log('[getDashboardByRole] Role is TENANT_ADMIN or TENANT_MANAGER, returning /tenant');
+    //for now return /dairy/dashboard
+    return '/dairy/dashboard';
+  }
+
+  // Broader checks for domain-specific dashboards
+  // Ensure these don't unintentionally match before more specific tenant roles if naming overlaps
+  if (role.includes('DAIRY_')) { // e.g., DAIRY_ADMIN, DAIRY_FARMER
+    console.log('[getDashboardByRole] Role includes DAIRY_, returning /dairy/dashboard');
+    return '/dairy/dashboard';
+  }
+  if (role.includes('POULTRY_')) {
+    console.log('[getDashboardByRole] Role includes POULTRY_, returning /poultry/dashboard');
+    return '/poultry/dashboard';
+  }
+  if (role.includes('SYSTEM_')) { // e.g., SYSTEM_ADMIN
+    console.log('[getDashboardByRole] Role includes SYSTEM_, returning /admin');
+    return '/admin';
+  }
+
+  console.log('[getDashboardByRole] No specific role match, returning /dashboard');
   return '/dashboard';
 }
 
@@ -135,7 +155,7 @@ export const config = {
     '/admin/:path*',
     '/dairy/:path*',
     '/poultry/:path*',
-    '/dashboard/:path*', // Ensure /dashboard is matched if it's a protected route
+    '/dashboard/:path*', // This will match the (dairy) route group dashboard
     '/tenant/:path*',
     '/login',
     '/register',

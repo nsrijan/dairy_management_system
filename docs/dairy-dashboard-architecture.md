@@ -7,18 +7,98 @@ This document outlines the dashboard architecture for the dairy management syste
 ### Directory Structure
 
 ```
+# Dairy Feature Folder Structure
+
+```
 /app
   └── /(dairy)
       └── dashboard
           └── page.tsx         # Role-aware logic & routing
-/components
-  └── dairy
-      └── dashboards
-          ├── TenantAdminDashboard.tsx      # Administrative overview
-          ├── FarmerDashboard.tsx           # Farm operations & livestock
-          ├── ProductionManagerDashboard.tsx # Production metrics & quality
-          └── DeliveryStaffDashboard.tsx    # Logistics & delivery tracking
+
+/features
+└── dairy
+    ├── dashboard/
+    │   ├── components/
+    │   │   ├── TenantAdminDashboard.tsx
+    │   │   ├── FarmerDashboard.tsx
+    │   │   ├── ProductionManagerDashboard.tsx
+    │   │   ├── DeliveryStaffDashboard.tsx
+    │   │   ├── StatCard.tsx
+    │   │   ├── ChartCard.tsx
+    │   │   ├── ActivityFeed.tsx
+    │   │   ├── DashboardLayout.tsx
+    │   │   └── Navigation.tsx
+    │   ├── hooks/
+    │   │   ├── useDashboardData.ts
+    │   │   └── useUserRole.ts
+    │   ├── services/
+    │   │   └── dashboardService.ts
+    │   └── types/
+    │       └── index.ts
+    │
+    ├── milkcollectionbranch/
+    │   ├── components/
+    │   │   ├── BranchDashboard.tsx
+    │   │   ├── CollectionForm.tsx
+    │   │   ├── FarmerList.tsx
+    │   │   ├── MilkQualityTest.tsx
+    │   │   ├── CollectionHistory.tsx
+    │   │   ├── BranchStats.tsx
+    │   │   └── BranchLayout.tsx
+    │   ├── hooks/
+    │   │   ├── useMilkCollection.ts
+    │   │   ├── useFarmers.ts
+    │   │   └── useQualityTests.ts
+    │   ├── services/
+    │   │   ├── collectionService.ts
+    │   │   └── qualityService.ts
+    │   └── types/
+    │       └── index.ts
+    │
+    ├── shared/
+    │   ├── components/
+    │   │   ├── CommonHeader.tsx
+    │   │   ├── LoadingSpinner.tsx
+    │   │   └── ErrorBoundary.tsx
+    │   ├── hooks/
+    │   │   ├── useAuth.ts
+    │   │   └── useNotifications.ts
+    │   ├── services/
+    │   │   ├── apiService.ts
+    │   │   └── authService.ts
+    │   └── types/
+    │       ├── user.ts
+    │       ├── common.ts
+    │       └── api.ts
+    │
+    └── utils/
+        ├── constants.ts
+        ├── helpers.ts
+        └── validators.ts
 ```
+
+## Key Changes:
+
+1. **Dashboard Feature**: All dashboard-related components are now under `/features/dairy/dashboard/components/`
+   - Role-specific dashboards
+   - Shared dashboard components (StatCard, ChartCard, ActivityFeed)
+   - Layout components (DashboardLayout, Navigation)
+
+2. **Milk Collection Branch Feature**: New feature structure under `/features/dairy/milkcollectionbranch/components/`
+   - Branch-specific components
+   - Collection and quality testing components
+   - Branch layout and statistics
+
+3. **Shared Resources**: Common components, hooks, services, and types that can be used across multiple features
+
+4. **Utils**: Helper functions, constants, and validators used throughout the dairy feature
+
+## Benefits:
+- Each feature is self-contained with its own components, hooks, services, and types
+- Clear separation of concerns
+- Easy to maintain and scale
+- Shared resources are available to all features
+- Follows feature-driven development principles
 
 ## Architecture Overview
 

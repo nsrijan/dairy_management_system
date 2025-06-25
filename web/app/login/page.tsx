@@ -90,12 +90,31 @@ export default function LoginPage() {
       }
 
       // Use the auth context to login
-      login(response.token, response.user);
+      login(response.token, response.user, response.tenant);
+
+      // Determine redirect destination based on tenant domain
+      let destination = 'dashboard';
+      if (response.tenant?.domain) {
+        destination = `${response.tenant.domain}/dashboard`;
+        setDebugInfo(`Login successful! Redirecting to ${destination} for ${response.tenant.domain} domain...`);
+      } else if (!subdomain && isManagerRole) {
+        destination = 'admin dashboard';
+        setDebugInfo(`Login successful! Redirecting to ${destination}...`);
+      } else {
+        setDebugInfo(`Login successful! Redirecting to ${destination}...`);
+      }
 
       // Set success state to trigger the navigation effect
       setLoginSuccess(true);
-      const destination = (!subdomain && isManagerRole) ? 'admin dashboard' : 'dashboard';
-      setDebugInfo(`Login successful! Redirecting to ${destination}...`);
+
+      // Redirect based on domain
+      setTimeout(() => {
+        if (response.tenant?.domain) {
+          router.push(`/${response.tenant.domain}/dashboard`);
+        } else {
+          router.refresh(); // Let middleware handle redirection
+        }
+      }, 1000);
     } catch (err: any) {
       console.error('Login error caught in page:', err);
       setError(err.message || 'Invalid username/email or password');
