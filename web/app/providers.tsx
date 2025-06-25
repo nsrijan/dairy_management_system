@@ -35,12 +35,19 @@ interface User {
   role: string;
 }
 
+interface Tenant {
+  id: string;
+  name: string;
+  domain: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  tenant: Tenant | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   token: string | null;
-  login: (token: string, user: User) => void;
+  login: (token: string, user: User, tenant?: Tenant) => void;
   logout: () => void;
 }
 
@@ -104,6 +111,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [tenant, setTenant] = useState<Tenant | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -125,20 +133,37 @@ function AuthProvider({ children }: { children: ReactNode }) {
           console.error('Failed to parse stored user', e);
         }
       }
+
+      // Try to get tenant info from localStorage if available
+      const storedTenant = localStorage.getItem('tenant');
+      if (storedTenant) {
+        try {
+          const parsedTenant = JSON.parse(storedTenant);
+          console.log('Auto-loaded tenant:', parsedTenant.name);
+          setTenant(parsedTenant);
+        } catch (e) {
+          console.error('Failed to parse stored tenant', e);
+        }
+      }
       // In a real app, you might want to validate the token with the server here
     }
 
     setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string, newUser: User, newTenant?: Tenant) => {
     setToken(newToken);
     setUser(newUser);
+    setTenant(newTenant || null);
     localStorage.setItem('auth_token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
-    document.cookie = `auth_token=${newToken}; path=/; max-age=86400; secure`;
+    if (newTenant) {
+      localStorage.setItem('tenant', JSON.stringify(newTenant));
+    }
+    // Conditionally set the secure flag
+    const cookieOptions = `path=/; max-age=86400${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+    document.cookie = `auth_token=${newToken}; ${cookieOptions}`;
   };
-
   const logout = async () => {
     // Call backend to invalidate the token
     try {
@@ -149,9 +174,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // Clear local state regardless of backend success
       setToken(null);
       setUser(null);
+      setTenant(null);
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      localStorage.removeItem('tenant');
+      const cookieClearOptions = `path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+      document.cookie = `auth_token=; ${cookieClearOptions}`;
     }
   };
 
@@ -167,6 +195,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        tenant,
         token,
         isAuthenticated: !!token,
         isLoading,

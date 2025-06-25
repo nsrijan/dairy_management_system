@@ -42,7 +42,10 @@ export const RouteAccess: Record<string, { domain: Domain; roles: string[] }> = 
     },
     '/tenant/**': {
         domain: Domains.SYSTEM,
-        roles: [DomainRoles[Domains.SYSTEM].TENANT_MANAGER, DomainRoles[Domains.SYSTEM].TENANT_ADMIN],
+        roles: [
+            DomainRoles[Domains.SYSTEM].TENANT_MANAGER, // 'TENANT_MANAGER'
+            'TENANT_ADMIN' // Explicitly 'TENANT_ADMIN', matching getDashboardByRole
+        ],
     },
 
     // Dairy domain routes
@@ -112,9 +115,13 @@ export const matchRoute = (route: string, pattern: string): boolean => {
 
 // Helper function to get required roles for a route
 export const getRouteAccess = (route: string) => {
-    for (const [pattern, access] of Object.entries(RouteAccess)) {
+    // Sort patterns by length descending to match more specific routes first
+    // e.g., '/dairy/admin/**' before '/dairy/**'
+    const sortedPatterns = Object.keys(RouteAccess).sort((a, b) => b.length - a.length);
+
+    for (const pattern of sortedPatterns) {
         if (matchRoute(route, pattern)) {
-            return access;
+            return RouteAccess[pattern];
         }
     }
     return null;

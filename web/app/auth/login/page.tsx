@@ -22,17 +22,17 @@ export default function LoginPage() {
   // Check if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      // Let middleware handle redirection if already authenticated
+      router.refresh();
     }
   }, [isAuthenticated, router]);
 
   // Handle navigation after successful login
   useEffect(() => {
     if (loginSuccess) {
-      console.log('Login successful, redirecting to dashboard...');
+      console.log('Login successful, refreshing to let middleware redirect...');
       setTimeout(() => {
-        router.push('/dashboard');
-        router.refresh(); // Force refresh to update navigation state
+        router.refresh(); // Let middleware handle redirection
       }, 500); // Short delay to ensure token is saved
     }
   }, [loginSuccess, router]);
@@ -60,7 +60,7 @@ export default function LoginPage() {
       setDebugInfo(`Login successful! Redirecting to dashboard...`);
 
       // Use the auth context to login
-      login(response.token, response.user);
+      login(response.token, response.user, response.tenant);
 
       // Set success state to trigger the navigation effect
       setLoginSuccess(true);

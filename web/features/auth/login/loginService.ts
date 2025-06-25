@@ -16,6 +16,11 @@ interface LoginResponse {
         email: string;
         role: string;
     };
+    tenant?: {
+        id: string;
+        name: string;
+        domain: string; // Added domain field
+    };
 }
 
 /**
@@ -109,6 +114,10 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
             throw new Error(data.message || 'Login failed');
         }
 
+        // Determine tenant domain based on tenant name and roles
+        const tenantDomain = data.data.primaryTenantName ?
+            determineTenantDomain(data.data.primaryTenantName, data.data.roles) : 'dairy';
+
         // Map the backend response to our expected format
         const authResponse: LoginResponse = {
             token: data.data.accessToken,
@@ -118,7 +127,12 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
                 email: data.data.email,
                 // Convert backend role format (ROLE_SYSTEM_ADMIN) to our format (SUPER_ADMIN)
                 role: mapRoleFromBackend(data.data.roles[0])
-            }
+            },
+            tenant: data.data.primaryTenantId ? {
+                id: data.data.primaryTenantId.toString(),
+                name: data.data.primaryTenantName,
+                domain: tenantDomain
+            } : undefined
         };
 
         return authResponse;
@@ -146,6 +160,40 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
 function mapRoleFromBackend(backendRole: string): string {
     // Remove 'ROLE_' prefix and return the rest
     return backendRole.replace('ROLE_', '') || 'USER';
+}
+
+/**
+ * Mock function to determine tenant domain/module based on tenant name or role
+ * In real implementation, this would come from backend or tenant configuration
+ * @param tenantName The tenant name from backend
+ * @param roles Array of user roles
+ * @returns Domain identifier (e.g., 'dairy', 'bus', 'poultry')
+ */
+function determineTenantDomain(tenantName: string, roles: string[]): string {
+    console.log(`[determineTenantDomain] Determining domain for tenant: ${tenantName}, roles: ${roles.join(', ')}`);
+
+    // Mock logic - in real app this would be based on tenant configuration
+    // For now, check if any role contains domain-specific prefixes
+    const roleString = roles.join(' ').toLowerCase();
+
+    if (roleString.includes('dairy') || tenantName.toLowerCase().includes('dairy')) {
+        console.log('[determineTenantDomain] Determined domain: dairy');
+        return 'dairy';
+    }
+
+    if (roleString.includes('bus') || tenantName.toLowerCase().includes('bus')) {
+        console.log('[determineTenantDomain] Determined domain: bus');
+        return 'bus';
+    }
+
+    if (roleString.includes('poultry') || tenantName.toLowerCase().includes('poultry')) {
+        console.log('[determineTenantDomain] Determined domain: poultry');
+        return 'poultry';
+    }
+
+    // Default to dairy for MVP (since we only have dairy implemented)
+    console.log('[determineTenantDomain] No specific domain found, defaulting to dairy for MVP');
+    return 'dairy';
 }
 
 /**
