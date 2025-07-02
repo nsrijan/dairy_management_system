@@ -1,9 +1,7 @@
 package com.jaysambhu.modulynx.core.tenant.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.jaysambhu.modulynx.core.tenant.model.ModuleType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,9 +31,6 @@ public class TenantDto {
 
     @JsonProperty("active")
     private boolean isActive;
-
-    @NotNull(message = "Module type is required")
-    private ModuleType moduleType;
 
     private LocalDateTime createdAt;
     private String createdBy;

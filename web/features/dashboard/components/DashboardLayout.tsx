@@ -1,45 +1,70 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { AppLayout } from '@/components/layout';
-import {
-    LayoutDashboard, Users, Droplet, Package,
-    ShoppingCart, BarChart2, Settings,
-    Map, PieChart as PieChartIcon, Activity, ShoppingBag, Truck
-} from 'lucide-react';
+import React, { ReactNode } from 'react';
+import { Navigation } from './Navigation';
 
-export interface DashboardLayoutProps {
-    children: React.ReactNode;
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
-    const sidebarItems = [
-        { icon: <LayoutDashboard size={20} />, label: 'Dashboard', href: '/dashboard' },
-        { icon: <Map size={20} />, label: 'Milk Collection Branch', href: '/dashboard/mcb' },
-        { icon: <Droplet size={20} />, label: 'Milk Collection', href: '/dashboard/collection' },
-        { icon: <ShoppingBag size={20} />, label: 'Raw Materials', href: '/dashboard/materials' },
-        { icon: <Activity size={20} />, label: 'Production', href: '/dashboard/production' },
-        { icon: <Package size={20} />, label: 'Products', href: '/dashboard/products' },
-        { icon: <PieChartIcon size={20} />, label: 'Inventory', href: '/dashboard/inventory' },
-        { icon: <Truck size={20} />, label: 'Transfers', href: '/dashboard/transfers' },
-        { icon: <Map size={20} />, label: 'Branches', href: '/dashboard/branches' },
-        { icon: <ShoppingCart size={20} />, label: 'Sales', href: '/dashboard/sales' },
-        { icon: <BarChart2 size={20} />, label: 'Reports', href: '/dashboard/reports' },
-        { icon: <Settings size={20} />, label: 'Settings', href: '/dashboard/settings' },
-    ];
+interface DashboardLayoutProps {
+    children: ReactNode;
+    user: User;
+    tenant?: string | null;
+}
 
-    const logo = (
-        <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-teal-600 dark:bg-teal-500 text-white flex items-center justify-center font-bold">
-                DM
-            </div>
-            <span className="text-xl font-semibold text-gray-800 dark:text-white">DairyManager</span>
-        </div>
-    );
-
+export function DashboardLayout({ children, user, tenant }: DashboardLayoutProps) {
     return (
-        <AppLayout sidebarItems={sidebarItems} logo={logo}>
-            {children}
-        </AppLayout>
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <header className="bg-white shadow-sm border-b">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center py-4">
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                Dairy Management System
+                            </h1>
+                            {tenant && (
+                                <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                    {tenant}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center space-x-4">
+                            <div className="text-right">
+                                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                <p className="text-xs text-gray-500">{user.email}</p>
+                                <p className="text-xs text-gray-400">
+                                    {user.role.replace('ROLE_', '')}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    // Handle logout
+                                    document.cookie = 'auth_token=; path=/; max-age=0; samesite=strict';
+                                    window.location.href = '/login';
+                                }}
+                                className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* Navigation */}
+            <Navigation user={user} />
+
+            {/* Main Content */}
+            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                {children}
+            </main>
+        </div>
     );
 } 

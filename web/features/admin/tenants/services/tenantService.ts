@@ -1,24 +1,37 @@
-import { TenantResponse, TenantsListResponse, ModuleType } from '../types';
+import { authenticatedFetch, handleApiResponse } from '@/lib/api';
+import { TenantResponse, TenantsListResponse } from '../types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const API_PATH = '/api/v1/tenants';
 
-export interface TenantFormData {
+export interface CreateTenantData {
     name: string;
     subdomain: string;
-    moduleType: ModuleType;
-    active: boolean;
     currency: string;
     timezone: string;
 }
 
+export interface UpdateTenantData {
+    name?: string;
+    subdomain?: string;
+    currency?: string;
+    timezone?: string;
+    active?: boolean;
+}
+
 export interface CreateTenantRequest {
     name: string;
-    slug: string;
+    subdomain: string;
     currency: string;
     timezone: string;
-    moduleType: string;
-    isActive: boolean;
+}
+
+export interface UpdateTenantRequest {
+    name?: string;
+    subdomain?: string;
+    currency?: string;
+    timezone?: string;
+    active?: boolean;
 }
 
 export interface TenantAdminResponse {
@@ -58,6 +71,44 @@ export interface TenantOnboardingRequest {
         password: string;
         username: string;
     };
+}
+
+export interface TenantCreateRequest {
+    name: string;
+    subdomain: string;
+    description?: string;
+    isActive: boolean;
+}
+
+export interface TenantUpdateRequest {
+    name: string;
+    description?: string;
+    isActive: boolean;
+}
+
+export interface TenantWithStatsResponse extends TenantResponse {
+    companyCount: number;
+    userCount: number;
+}
+
+export interface AdminUserCreateRequest {
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+}
+
+export interface CompanyCreateRequest {
+    name: string;
+    description?: string;
+    isActive: boolean;
+}
+
+export interface OnboardingRequest {
+    tenant: TenantCreateRequest;
+    adminUser: AdminUserCreateRequest;
+    company: CompanyCreateRequest;
 }
 
 /**
@@ -117,14 +168,21 @@ export async function getTenantById(token: string, id: string): Promise<TenantRe
 /**
  * Creates a new tenant
  */
-export async function createTenant(token: string, data: TenantFormData): Promise<TenantResponse> {
+export async function createTenant(token: string, data: CreateTenantData): Promise<TenantResponse> {
+    const requestData: CreateTenantRequest = {
+        name: data.name,
+        subdomain: data.subdomain,
+        currency: data.currency,
+        timezone: data.timezone,
+    };
+
     const response = await fetch(`${API_BASE_URL}${API_PATH}`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {
@@ -177,14 +235,22 @@ export async function createTenantAdmin(token: string, tenantId: string, data: C
 /**
  * Updates an existing tenant
  */
-export async function updateTenant(token: string, id: string, data: Partial<TenantFormData>): Promise<TenantResponse> {
+export async function updateTenant(token: string, id: string, data: UpdateTenantData): Promise<TenantResponse> {
+    const requestData: UpdateTenantRequest = {
+        ...(data.name && { name: data.name }),
+        ...(data.subdomain && { subdomain: data.subdomain }),
+        ...(data.currency && { currency: data.currency }),
+        ...(data.timezone && { timezone: data.timezone }),
+        ...(data.active !== undefined && { active: data.active }),
+    };
+
     const response = await fetch(`${API_BASE_URL}${API_PATH}/${id}`, {
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {
@@ -250,4 +316,51 @@ export async function setupTenant(token: string, data: TenantOnboardingRequest):
     }
 
     return response.json();
-} 
+}
+
+class TenantApiService {
+    async getAll(token: string): Promise<TenantWithStatsResponse[]> {
+        const response = await authenticatedFetch('/api/v1/admin/tenants/with-stats', token);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to fetch tenants');
+        }
+
+        const result = await response.json();
+        return result.data || [];
+    }
+
+    async getById(id: string, token: string): Promise<TenantResponse> {
+        return getTenantById(token, id);
+    }
+
+    async create(data: TenantCreateRequest, token: string): Promise<TenantResponse> {
+        return createTenant(token, data);
+    }
+
+    async update(id: string, data: TenantUpdateRequest, token: string): Promise<TenantResponse> {
+        return updateTenant(token, id, data);
+    }
+
+    async delete(id: string, token: string): Promise<void> {
+        return deleteTenant(token, id);
+    }
+
+    async createWithOnboarding(data: OnboardingRequest, token: string): Promise<TenantResponse> {
+        const response = await authenticatedFetch('/api/v1/admin/tenants/onboard', token, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to create tenant with onboarding');
+        }
+
+        const result = await response.json();
+        return result.data;
+    }
+}
+
+export const tenantApiService = new TenantApiService(); 

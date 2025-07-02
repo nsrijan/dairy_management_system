@@ -2,11 +2,12 @@ import {
     LayoutDashboard,
     Users,
     Building2,
-    Store,
+    MapPin,
     Warehouse,
     Factory,
-    ShoppingCart,
-    Truck,
+    Store,
+    Package,
+    TestTube,
     BarChart4,
     Settings,
     Database
@@ -21,7 +22,7 @@ interface User {
 }
 
 /**
- * Gets navigation items based on user role
+ * Gets navigation items based on user role (simplified dairy operations - no /dairy prefix)
  */
 export function getNavItems(user: User | null): SidebarItem[] {
     // Default items for all authenticated users
@@ -41,72 +42,175 @@ export function getNavItems(user: User | null): SidebarItem[] {
     // Add role-specific items
     const roleItems: SidebarItem[] = [];
 
-    // Add tenant management for TENANT_MANAGER and SUPER_ADMIN
-    if (user.role === 'TENANT_MANAGER' || user.role === 'SUPER_ADMIN') {
+    // System Admin - System-wide management
+    if (user.role === 'SYSTEM_ADMIN') {
         roleItems.push({
             icon: <Database className="h-5 w-5" />,
-            label: 'Tenant Management',
-            href: '/admin/tenants'
+            label: 'System Management',
+            href: '/admin'
         });
     }
 
-    // Add other module items based on roles (common for tenant users)
-    if (user.role === 'SUPER_ADMIN' || user.role === 'COMPANY_ADMIN' || user.role === 'MANAGER') {
-        roleItems.push({
-            icon: <Building2 className="h-5 w-5" />,
-            label: 'Company',
-            href: '/dashboard/company'
-        });
-
-        roleItems.push({
-            icon: <Users className="h-5 w-5" />,
-            label: 'Users',
-            href: '/dashboard/users'
-        });
-    }
-
-    // For authenticated users in a tenant context
-    if (user.role !== 'TENANT_MANAGER') {
+    // Tenant Admin - Full dairy operations management
+    if (user.role === 'TENANT_ADMIN') {
         roleItems.push(
             {
+                icon: <MapPin className="h-5 w-5" />,
+                label: 'Milk Collection Centers',
+                href: '/mcb'
+            },
+            {
+                icon: <Factory className="h-5 w-5" />,
+                label: 'Factory Operations',
+                href: '/factory'
+            },
+            {
                 icon: <Store className="h-5 w-5" />,
-                label: 'Suppliers',
-                href: '/dashboard/suppliers'
+                label: 'Retail Shops',
+                href: '/shops'
+            },
+            {
+                icon: <Users className="h-5 w-5" />,
+                label: 'Farmers',
+                href: '/farmers'
+            },
+            {
+                icon: <Package className="h-5 w-5" />,
+                label: 'Products',
+                href: '/products'
             },
             {
                 icon: <Warehouse className="h-5 w-5" />,
                 label: 'Inventory',
-                href: '/dashboard/inventory'
+                href: '/inventory'
             },
             {
-                icon: <Factory className="h-5 w-5" />,
-                label: 'Production',
-                href: '/dashboard/production'
-            },
-            {
-                icon: <ShoppingCart className="h-5 w-5" />,
-                label: 'Sales',
-                href: '/dashboard/sales'
-            },
-            {
-                icon: <Truck className="h-5 w-5" />,
-                label: 'Distribution',
-                href: '/dashboard/distribution'
+                icon: <TestTube className="h-5 w-5" />,
+                label: 'Quality Testing',
+                href: '/quality'
             },
             {
                 icon: <BarChart4 className="h-5 w-5" />,
                 label: 'Reports',
-                href: '/dashboard/reports'
+                href: '/reports'
             }
         );
     }
 
-    // Settings for all users
-    roleItems.push({
-        icon: <Settings className="h-5 w-5" />,
-        label: 'Settings',
-        href: '/dashboard/settings'
-    });
+    // Factory Manager - Factory operations only
+    if (user.role === 'FACTORY_MANAGER') {
+        roleItems.push(
+            {
+                icon: <Factory className="h-5 w-5" />,
+                label: 'Factory Operations',
+                href: '/factory'
+            },
+            {
+                icon: <Package className="h-5 w-5" />,
+                label: 'Products',
+                href: '/products'
+            },
+            {
+                icon: <Warehouse className="h-5 w-5" />,
+                label: 'Inventory',
+                href: '/inventory'
+            }
+        );
+    }
+
+    // MCB Manager - Milk collection operations
+    if (user.role === 'MCB_MANAGER') {
+        roleItems.push(
+            {
+                icon: <MapPin className="h-5 w-5" />,
+                label: 'My Collection Center',
+                href: '/mcb'
+            },
+            {
+                icon: <Users className="h-5 w-5" />,
+                label: 'Farmers',
+                href: '/farmers'
+            },
+            {
+                icon: <TestTube className="h-5 w-5" />,
+                label: 'Quality Testing',
+                href: '/quality'
+            }
+        );
+    }
+
+    // Shop Manager - Retail operations
+    if (user.role === 'SHOP_MANAGER') {
+        roleItems.push(
+            {
+                icon: <Store className="h-5 w-5" />,
+                label: 'Shop Operations',
+                href: '/shops'
+            },
+            {
+                icon: <Warehouse className="h-5 w-5" />,
+                label: 'Shop Inventory',
+                href: '/inventory'
+            }
+        );
+    }
+
+    // Staff roles - Limited access to their respective areas
+    if (user.role === 'FACTORY_STAFF') {
+        roleItems.push({
+            icon: <Factory className="h-5 w-5" />,
+            label: 'Factory Operations',
+            href: '/factory'
+        });
+    }
+
+    if (user.role === 'MCB_STAFF') {
+        roleItems.push(
+            {
+                icon: <MapPin className="h-5 w-5" />,
+                label: 'Collection Center',
+                href: '/mcb'
+            },
+            {
+                icon: <TestTube className="h-5 w-5" />,
+                label: 'Quality Testing',
+                href: '/quality'
+            }
+        );
+    }
+
+    if (user.role === 'SHOP_STAFF') {
+        roleItems.push({
+            icon: <Store className="h-5 w-5" />,
+            label: 'Shop Operations',
+            href: '/shops'
+        });
+    }
+
+    // Farmer - Limited access (separate dashboard)
+    if (user.role === 'FARMER') {
+        roleItems.push(
+            {
+                icon: <MapPin className="h-5 w-5" />,
+                label: 'My Collections',
+                href: '/farmer/collections'
+            },
+            {
+                icon: <BarChart4 className="h-5 w-5" />,
+                label: 'My Reports',
+                href: '/farmer/reports'
+            }
+        );
+    }
+
+    // Settings for all users (except farmers who have limited access)
+    if (user.role !== 'FARMER' && user.role !== 'CUSTOMER') {
+        roleItems.push({
+            icon: <Settings className="h-5 w-5" />,
+            label: 'Settings',
+            href: '/settings'
+        });
+    }
 
     return [...defaultItems, ...roleItems];
-} 
+}

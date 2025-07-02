@@ -1,36 +1,44 @@
-export const Roles = {
+// Dairy Management System Roles
+export const ROLES = {
     SYSTEM_ADMIN: 'SYSTEM_ADMIN',
     TENANT_ADMIN: 'TENANT_ADMIN',
-    TENANT_MANAGER: 'TENANT_MANAGER',
-    COMPANY_ADMIN: 'COMPANY_ADMIN',
-    MANAGER: 'MANAGER',
-    STAFF: 'STAFF',
+    FACTORY_MANAGER: 'FACTORY_MANAGER',
+    MCB_MANAGER: 'MCB_MANAGER',
+    SHOP_MANAGER: 'SHOP_MANAGER',
+    FACTORY_STAFF: 'FACTORY_STAFF',
+    MCB_STAFF: 'MCB_STAFF',
+    SHOP_STAFF: 'SHOP_STAFF',
+    FARMER: 'FARMER',
+    CUSTOMER: 'CUSTOMER',
 } as const;
 
-export type Role = keyof typeof Roles;
+export type Role = keyof typeof ROLES;
 
-export const hasRole = (userRole: string | undefined, requiredRole: Role): boolean => {
-    if (!userRole) return false;
+// Simple role checking utilities
+export const hasRole = (userRole: string | undefined, requiredRole: keyof typeof ROLES): boolean => {
     return userRole === requiredRole;
 };
 
-export const hasAnyRole = (userRole: string | undefined, requiredRoles: Role[]): boolean => {
+export const hasAnyRole = (userRole: string | undefined, requiredRoles: (keyof typeof ROLES)[]): boolean => {
     if (!userRole) return false;
-    return requiredRoles.some(role => userRole === role);
+    return requiredRoles.includes(userRole as keyof typeof ROLES);
 };
 
-// Role hierarchy for permission inheritance
-export const RoleHierarchy: Record<Role, Role[]> = {
-    SYSTEM_ADMIN: ['SYSTEM_ADMIN', 'TENANT_ADMIN', 'TENANT_MANAGER', 'COMPANY_ADMIN', 'MANAGER', 'STAFF'],
-    TENANT_ADMIN: ['TENANT_ADMIN', 'TENANT_MANAGER', 'COMPANY_ADMIN', 'MANAGER', 'STAFF'],
-    TENANT_MANAGER: ['TENANT_MANAGER', 'COMPANY_ADMIN', 'MANAGER', 'STAFF'],
-    COMPANY_ADMIN: ['COMPANY_ADMIN', 'MANAGER', 'STAFF'],
-    MANAGER: ['MANAGER', 'STAFF'],
-    STAFF: ['STAFF'],
-};
-
-export const hasPermissionLevel = (userRole: string | undefined, requiredRole: Role): boolean => {
+// Simple permission checking - managers can do what their staff can do
+export const canAccess = (userRole: string | undefined, requiredRole: keyof typeof ROLES): boolean => {
     if (!userRole) return false;
-    const userRoleEnum = userRole as Role;
-    return RoleHierarchy[userRoleEnum]?.includes(requiredRole) || false;
+
+    // System admin can access everything
+    if (userRole === ROLES.SYSTEM_ADMIN) return true;
+
+    // Tenant admin can access all dairy operations
+    if (userRole === ROLES.TENANT_ADMIN && requiredRole !== ROLES.SYSTEM_ADMIN) return true;
+
+    // Managers can access their staff functions
+    if (userRole === ROLES.FACTORY_MANAGER && requiredRole === ROLES.FACTORY_STAFF) return true;
+    if (userRole === ROLES.MCB_MANAGER && requiredRole === ROLES.MCB_STAFF) return true;
+    if (userRole === ROLES.SHOP_MANAGER && requiredRole === ROLES.SHOP_STAFF) return true;
+
+    // Exact role match
+    return userRole === requiredRole;
 }; 

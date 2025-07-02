@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StatCard } from '../../../../dashboard/widgets';
+import { StatCard } from '../../../../dashboard/components/StatCard';
 import { MilkProductionPanel } from './panels/MilkProductionPanel';
 import { FinancialSummaryPanel } from './panels/FinancialSummaryPanel';
 import { SupplyPurchasesPanel } from './panels/SupplyPurchasesPanel';
@@ -96,7 +96,7 @@ export function DairyFarmerDashboard({ user }: DairyFarmerDashboardProps) {
                         isPositive: false,
                         text: "-12% from last month"
                     }}
-                    color="amber"
+                    color="yellow"
                 />
             </div>
 

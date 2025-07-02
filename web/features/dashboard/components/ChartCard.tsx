@@ -1,33 +1,62 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReactNode } from 'react';
+import React from 'react';
 
-export interface ChartCardProps {
+interface ChartCardProps {
     title: string;
     description?: string;
-    children?: ReactNode;
-    placeholder?: string;
-    headerActions?: ReactNode;
+    type: 'line' | 'bar' | 'pie' | 'area';
+    data?: any[];
 }
 
-export function ChartCard({ title, description, children, placeholder, headerActions }: ChartCardProps) {
-    return (
-        <Card className="shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0">
-                <div>
-                    <CardTitle className="text-base font-semibold text-gray-800 dark:text-gray-200">{title}</CardTitle>
-                    {description && <CardDescription className="text-xs mt-1">{description}</CardDescription>}
-                </div>
-                {headerActions && <div>{headerActions}</div>}
-            </CardHeader>
-            <CardContent className="p-0">
-                {children ? (
-                    children
-                ) : (
-                    <div className="h-[250px] flex items-center justify-center border-t border-dashed border-gray-200 dark:border-gray-700">
-                        <span className="text-gray-500 dark:text-gray-400">{placeholder || 'Chart Placeholder'}</span>
+export function ChartCard({ title, description, type }: ChartCardProps) {
+    const getChartPlaceholder = () => {
+        switch (type) {
+            case 'line':
+                return (
+                    <div className="flex items-end space-x-1 h-32">
+                        {[40, 65, 45, 80, 60, 75, 90, 55, 70, 85].map((height, index) => (
+                            <div
+                                key={index}
+                                className="bg-blue-500 rounded-t flex-1"
+                                style={{ height: `${height}%` }}
+                            />
+                        ))}
                     </div>
+                );
+            case 'pie':
+                return (
+                    <div className="flex items-center justify-center h-32">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative">
+                            <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
+                                <span className="text-sm font-semibold">Chart</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            default:
+                return (
+                    <div className="flex items-center justify-center h-32 bg-gray-100 rounded">
+                        <span className="text-gray-500">Chart Placeholder</span>
+                    </div>
+                );
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-lg shadow p-6">
+            <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                {description && (
+                    <p className="text-sm text-gray-600">{description}</p>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+
+            {getChartPlaceholder()}
+
+            <div className="mt-4 text-center">
+                <button className="text-sm text-blue-600 hover:text-blue-800">
+                    View Details →
+                </button>
+            </div>
+        </div>
     );
 } 

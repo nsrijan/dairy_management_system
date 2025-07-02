@@ -1,113 +1,79 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTenantById, updateTenant, deleteTenant, setupTenant, updateTenantAdminStatus, createTenantAdmin, CreateTenantAdminRequest } from '../services/tenantService';
-import { createCompany, updateCompany, Company } from '../services/companyService';
-import { TenantResponse, ModuleType } from '../types';
+import { TenantResponse } from '../types';
+import {
+    getAllTenants,
+    getTenantById,
+    createTenant,
+    updateTenant,
+    deleteTenant,
+    CreateTenantData,
+    UpdateTenantData
+} from '../services/tenantService';
 
-export const useTenantDetails = (token: string, tenantId: string) => {
+const QUERY_KEYS = {
+    tenants: ['tenants'] as const,
+    tenant: (id: string) => ['tenant', id] as const,
+};
+
+export function useTenants(token: string) {
     return useQuery({
-        queryKey: ['tenant', tenantId],
-        queryFn: () => getTenantById(token, tenantId),
-        enabled: !!token && !!tenantId,
+        queryKey: QUERY_KEYS.tenants,
+        queryFn: () => getAllTenants(token),
+        enabled: !!token,
     });
-};
-
-export const useUpdateTenant = (token: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: { id: string; tenant: Partial<TenantResponse> }) =>
-            updateTenant(token, data.id, data.tenant),
-        onSuccess: (_, variables) => {
-            // Invalidate tenant queries
-            queryClient.invalidateQueries({ queryKey: ['tenant', variables.id] });
-            queryClient.invalidateQueries({ queryKey: ['tenants'] });
-        },
-    });
-};
-
-export const useDeleteTenant = (token: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (tenantId: string) => deleteTenant(token, tenantId),
-        onSuccess: (_, tenantId) => {
-            // Invalidate tenant queries
-            queryClient.invalidateQueries({ queryKey: ['tenant', tenantId] });
-            queryClient.invalidateQueries({ queryKey: ['tenants'] });
-        },
-    });
-};
-
-export interface OnboardingData {
-    tenant: {
-        name: string;
-        slug: string;
-        currency: string;
-        timezone: string;
-        moduleType: ModuleType;
-        isActive: boolean;
-    };
-    company: {
-        name: string;
-        description?: string;
-        isActive: boolean;
-    };
-    admin: {
-        email: string;
-        firstName: string;
-        lastName: string;
-        password: string;
-        username: string;
-    };
 }
 
-export const useCreateTenant = (token: string) => {
+export function useTenant(token: string, id: string) {
+    return useQuery({
+        queryKey: QUERY_KEYS.tenant(id),
+        queryFn: () => getTenantById(token, id),
+        enabled: !!token && !!id,
+    });
+}
+
+export function useCreateTenant(token: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: OnboardingData) => setupTenant(token, data),
+        mutationFn: (data: CreateTenantData) => createTenant(token, data),
         onSuccess: () => {
-            // Invalidate tenants list query
-            queryClient.invalidateQueries({ queryKey: ['tenants'] });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tenants });
+            console.log('Tenant created successfully');
+        },
+        onError: (error: Error) => {
+            console.error('Failed to create tenant:', error.message);
         },
     });
-};
+}
 
-export const useUpdateCompany = (token: string, tenantId: string) => {
+export function useUpdateTenant(token: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: { companyId: string; company: Partial<Company> }) =>
-            updateCompany(token, tenantId, data.companyId, data.company),
-        onSuccess: () => {
-            // Invalidate company queries
-            queryClient.invalidateQueries({ queryKey: ['companies', tenantId] });
+        mutationFn: ({ id, data }: { id: string; data: UpdateTenantData }) =>
+            updateTenant(token, id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tenants });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tenant(id) });
+            console.log('Tenant updated successfully');
+        },
+        onError: (error: Error) => {
+            console.error('Failed to update tenant:', error.message);
         },
     });
-};
+}
 
-export const useUpdateAdmin = (token: string, tenantId: string) => {
+export function useDeleteTenant(token: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: { adminId: string; admin: { active: boolean } }) =>
-            updateTenantAdminStatus(token, tenantId, data.adminId, data.admin.active),
+        mutationFn: (id: string) => deleteTenant(token, id),
         onSuccess: () => {
-            // Invalidate admin queries
-            queryClient.invalidateQueries({ queryKey: ['admins', tenantId] });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tenants });
+            console.log('Tenant deleted successfully');
+        },
+        onError: (error: Error) => {
+            console.error('Failed to delete tenant:', error.message);
         },
     });
-};
-
-export const useCreateAdmin = (token: string, tenantId: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: CreateTenantAdminRequest) =>
-            createTenantAdmin(token, tenantId, data),
-        onSuccess: () => {
-            // Invalidate admin queries
-            queryClient.invalidateQueries({ queryKey: ['admins', tenantId] });
-        },
-    });
-}; 
+} 

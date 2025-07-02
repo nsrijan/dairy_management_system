@@ -4,6 +4,7 @@ import com.jaysambhu.modulynx.common.response.GlobalApiResponse;
 import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
 import com.jaysambhu.modulynx.core.company.dto.CompanyWithAdminCountDto;
 import com.jaysambhu.modulynx.core.company.service.CompanyService;
+import com.jaysambhu.modulynx.core.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -68,7 +69,7 @@ public class CompanyController {
     }
 
     @GetMapping("/{companyId}/users")
-    public ResponseEntity<List<CompanyDto>> getAllUsersByCompanyId(@PathVariable Long companyId) {
+    public ResponseEntity<List<UserDto>> getAllUsersByCompanyId(@PathVariable Long companyId) {
         return ResponseEntity.ok(companyService.getAllUsersByCompanyId(companyId));
     }
 

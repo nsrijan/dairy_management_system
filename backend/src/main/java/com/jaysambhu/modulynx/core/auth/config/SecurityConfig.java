@@ -86,7 +86,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*")); // Allow all origins for development
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Auth-Token"));
+        // Allow standard headers plus custom tenant subdomain header for multi-tenancy
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Auth-Token", "X-Tenant-Subdomain"));
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
         configuration.setAllowCredentials(false);
 

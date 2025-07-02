@@ -11,6 +11,7 @@ import com.jaysambhu.modulynx.core.company.repository.CompanyRepository;
 import com.jaysambhu.modulynx.core.company.service.CompanyService;
 import com.jaysambhu.modulynx.core.tenant.model.Tenant;
 import com.jaysambhu.modulynx.core.tenant.service.TenantService;
+import com.jaysambhu.modulynx.core.user.dto.UserDto;
 import com.jaysambhu.modulynx.core.user.model.User;
 import com.jaysambhu.modulynx.core.user.model.UserCompanyRole;
 import com.jaysambhu.modulynx.core.user.repository.UserCompanyRoleRepository;
@@ -192,14 +193,6 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
 
     @Override
     @Transactional(readOnly = true)
-    public List<CompanyDto> getAllUsersByCompanyId(Long companyId) {
-        return companyRepository.findById(companyId).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<CompanyWithAdminCountDto> getAllCompaniesWithAdminCountWithTenantId(Long tenantId) {
         // pull all companies with tenant id
         List<Company> companies = companyRepository.findByTenantId(tenantId);
@@ -221,4 +214,23 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
         }).collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getAllUsersByCompanyId(Long companyId) {
+        return userCompanyRoleRepository.findByCompanyId(companyId).stream()
+                .map(this::mapUserCompanyRoleToUserDto)
+                .collect(Collectors.toList());
+    }
+
+    private UserDto mapUserCompanyRoleToUserDto(UserCompanyRole userCompanyRole) {
+        User user = userCompanyRole.getUser();
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .isActive(user.isActive())
+                .build();
+    }
 }

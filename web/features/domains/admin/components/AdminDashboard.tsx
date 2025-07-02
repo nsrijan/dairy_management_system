@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StatCard, ChartCard } from '../../../dashboard/widgets';
+import { StatCard } from '../../../dashboard/components/StatCard';
+import { ChartCard } from '../../../dashboard/components/ChartCard';
 import {
     Building,
     Users,
