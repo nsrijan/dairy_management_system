@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getRouteAccess, isDomainRole } from './constants/domains';
+import { canAccessRoute } from './constants/routes';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -57,44 +57,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // From here, user is authenticated and on a protected route.
-  // Get route access requirements
-  const routeAccess = getRouteAccess(pathname);
-  console.log('Route access requirements for', pathname, ':', routeAccess);
+  // Check if user can access this route
+  const hasAccess = canAccessRoute(userRole, pathname);
+  console.log(`Route access check for ${pathname}: User role ${userRole} has access: ${hasAccess}`);
 
-  // If no specific access requirements for this protected route (e.g., /dashboard)
-  if (!routeAccess) {
-    console.log('No specific access requirements found for protected path:', pathname);
-    const correctDashboard = getDashboardByRole(userRole);
-    // If user is on a page with no rules and it's not their correct dashboard, redirect them.
-    if (pathname !== correctDashboard) {
-      console.log(`User with role ${userRole} on ${pathname} (no specific rules), but their correct dashboard is ${correctDashboard}. Redirecting.`);
-      return NextResponse.redirect(new URL(correctDashboard, request.url));
-    }
-    // Allow access if they are already on their correct dashboard or another page with no rules they landed on.
-    console.log(`Allowing access to ${pathname} for role ${userRole} as it has no specific rules and matches their dashboard or is a generic page.`);
-    return NextResponse.next();
-  }
-
-  // Check if user has required role for the route
-  const roleIncludesCheck = routeAccess.roles.includes(userRole);
-  const domainRoleCheck = isDomainRole(userRole, routeAccess.domain);
-  const hasRequiredRole = roleIncludesCheck || domainRoleCheck;
-
-  console.log('=== ROLE CHECK DEBUG ===');
-  console.log('Path:', pathname, 'User role:', userRole, 'Required roles:', routeAccess.roles, 'Route domain:', routeAccess.domain);
-  console.log('Role includes check:', roleIncludesCheck, 'Domain role check:', domainRoleCheck, 'Has required role:', hasRequiredRole);
-  console.log('========================');
-
-  if (!hasRequiredRole) {
-    console.log(`User role ${userRole} does not have required role for ${pathname}.`);
-    // Redirect to appropriate dashboard based on user's role
+  if (!hasAccess) {
+    console.log(`User role ${userRole} cannot access ${pathname}. Redirecting to dashboard.`);
     const redirectPath = getDashboardByRole(userRole);
-    console.log(`Redirecting to their correct dashboard: ${redirectPath}`);
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
-  console.log(`User role ${userRole} has required role for ${pathname}. Allowing access.`);
+  console.log(`User role ${userRole} can access ${pathname}. Allowing access.`);
   return NextResponse.next();
 }
 
@@ -123,26 +96,39 @@ function getDashboardByRole(role: string): string {
   const doesIncludeTenant = role.includes('TENANT_');
   console.log(`[getDashboardByRole] Does role include 'TENANT_'? ${doesIncludeTenant}`);
 
-  // Specific checks for tenant-related roles first
-  if (role === 'TENANT_ADMIN' || role === 'TENANT_MANAGER') {
-    console.log('[getDashboardByRole] Role is TENANT_ADMIN or TENANT_MANAGER, returning /tenant');
-    //for now return /dairy/dashboard
-    return '/dairy/dashboard';
-  }
+  // Role-based dashboard routing (simplified for dairy operations)
+  switch (role) {
+    case 'SYSTEM_ADMIN':
+      console.log('[getDashboardByRole] SYSTEM_ADMIN, returning /admin');
+      return '/admin';
 
-  // Broader checks for domain-specific dashboards
-  // Ensure these don't unintentionally match before more specific tenant roles if naming overlaps
-  if (role.includes('DAIRY_')) { // e.g., DAIRY_ADMIN, DAIRY_FARMER
-    console.log('[getDashboardByRole] Role includes DAIRY_, returning /dairy/dashboard');
-    return '/dairy/dashboard';
-  }
-  if (role.includes('POULTRY_')) {
-    console.log('[getDashboardByRole] Role includes POULTRY_, returning /poultry/dashboard');
-    return '/poultry/dashboard';
-  }
-  if (role.includes('SYSTEM_')) { // e.g., SYSTEM_ADMIN
-    console.log('[getDashboardByRole] Role includes SYSTEM_, returning /admin');
-    return '/admin';
+    case 'TENANT_ADMIN':
+      console.log('[getDashboardByRole] TENANT_ADMIN, returning /dashboard');
+      return '/dashboard';
+
+    case 'FACTORY_MANAGER':
+      console.log('[getDashboardByRole] FACTORY_MANAGER, returning /dashboard');
+      return '/dashboard';
+
+    case 'MCB_MANAGER':
+      console.log('[getDashboardByRole] MCB_MANAGER, returning /dashboard');
+      return '/dashboard';
+
+    case 'SHOP_MANAGER':
+      console.log('[getDashboardByRole] SHOP_MANAGER, returning /dashboard');
+      return '/dashboard';
+
+    case 'FARMER':
+      console.log('[getDashboardByRole] FARMER, returning /farmer');
+      return '/farmer';
+
+    default:
+      // For any staff roles or unrecognized roles
+      if (role.includes('_STAFF')) {
+        console.log('[getDashboardByRole] Staff role, returning /dashboard');
+        return '/dashboard';
+      }
+      break;
   }
 
   console.log('[getDashboardByRole] No specific role match, returning /dashboard');
@@ -153,10 +139,17 @@ export const config = {
   matcher: [
     '/',
     '/admin/:path*',
-    '/dairy/:path*',
-    '/poultry/:path*',
-    '/dashboard/:path*', // This will match the (dairy) route group dashboard
-    '/tenant/:path*',
+    '/dashboard/:path*',
+    '/mcb/:path*',
+    '/factory/:path*',
+    '/shops/:path*',
+    '/inventory/:path*',
+    '/storage/:path*',
+    '/products/:path*',
+    '/farmers/:path*',
+    '/farmer/:path*',
+    '/quality/:path*',
+    '/reports/:path*',
     '/login',
     '/register',
     '/auth/login',

@@ -64,7 +64,6 @@ public class TenantServiceImpl implements TenantService {
                 .name(tenantDto.getName())
                 .slug(tenantDto.getSlug())
                 .isActive(tenantDto.isActive())
-                .moduleType(tenantDto.getModuleType())
                 .build();
 
         Tenant savedTenant = tenantRepository.save(tenant);
@@ -85,7 +84,6 @@ public class TenantServiceImpl implements TenantService {
         existingTenant.setName(tenantDto.getName());
         existingTenant.setSlug(tenantDto.getSlug());
         existingTenant.setActive(tenantDto.isActive());
-        existingTenant.setModuleType(tenantDto.getModuleType());
 
         Tenant updatedTenant = tenantRepository.save(existingTenant);
         return mapToDto(updatedTenant);
@@ -119,7 +117,6 @@ public class TenantServiceImpl implements TenantService {
                 .name(tenant.getName())
                 .slug(tenant.getSlug())
                 .isActive(tenant.isActive())
-                .moduleType(tenant.getModuleType())
                 .createdAt(tenant.getCreatedAt())
                 .createdBy(tenant.getCreatedBy())
                 .updatedAt(tenant.getUpdatedAt())

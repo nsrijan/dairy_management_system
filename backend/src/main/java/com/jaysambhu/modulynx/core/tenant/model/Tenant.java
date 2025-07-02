@@ -32,10 +32,6 @@ public class Tenant extends BaseEntity {
     @Column(nullable = false)
     private boolean isActive;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ModuleType moduleType;
-
     @Override
     public boolean equals(Object o) {
         if (this == o)

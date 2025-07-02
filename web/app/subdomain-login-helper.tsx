@@ -15,23 +15,10 @@ export function useSubdomain() {
         if (typeof window !== 'undefined') {
             const hostname = window.location.hostname;
 
-            // here i need to check if the subdomain is a valid tenant subdomain even in the localhost
-            // if it is, then set the subdomain to the subdomain
-            // if it is not, then set the subdomain to null
-            // if the subdomain is not a valid tenant subdomain, then set the subdomain to null
-            // if the subdomain is a valid tenant subdomain, then set the subdomain to the subdomain
-
-            // so change the below code so that it valid for both abc.localhost and 
-            // also in real time say abc.modulynx.com
-
             let detectedSubdomain: string | null = null;
 
-            // Case 1: Exact 'localhost' or numeric IP -> no subdomain
-            if (hostname.includes('localhost')) {
-                detectedSubdomain = null;
-            }
-            // Case 2: 'subdomain.localhost' (e.g., abc.localhost)
-            else if (hostname.endsWith('.localhost')) {
+            // Case 1: 'subdomain.localhost' (e.g., abc.localhost) - check this FIRST
+            if (hostname.endsWith('.localhost')) {
                 const firstPart = hostname.split('.')[0];
                 // Ensure firstPart is not empty, not 'localhost' itself, and not 'www'
                 if (firstPart && firstPart !== 'localhost' && firstPart.toLowerCase() !== 'www') {
@@ -39,6 +26,10 @@ export function useSubdomain() {
                 } else {
                     detectedSubdomain = null; // Handles 'www.localhost', '.localhost', 'localhost.localhost'
                 }
+            }
+            // Case 2: Exact 'localhost' or numeric IP -> no subdomain
+            else if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+                detectedSubdomain = null;
             }
             // Case 3: Standard subdomains (e.g., abc.modulynx.com)
             else {
@@ -57,8 +48,8 @@ export function useSubdomain() {
                     detectedSubdomain = null;
                 }
             }
-            setSubdomain(detectedSubdomain);
 
+            setSubdomain(detectedSubdomain);
             setIsSubdomainLoaded(true);
         }
     }, []);

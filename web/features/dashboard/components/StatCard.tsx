@@ -1,71 +1,85 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReactNode } from 'react';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 
-export interface StatCardProps {
+interface StatCardProps {
     title: string;
     value: string;
-    icon: ReactNode;
+    change?: string;
+    changeType?: 'positive' | 'negative' | 'neutral';
+    icon?: string | React.ReactElement;
     trend?: {
-        value: ReactNode;
+        value: React.ReactElement;
         isPositive: boolean;
         text: string;
     };
-    color?: 'blue' | 'green' | 'purple' | 'amber' | 'teal';
+    color?: 'blue' | 'green' | 'purple' | 'yellow' | 'red' | 'gray';
 }
 
-export function StatCard({ title, value, icon, trend, color = 'teal' }: StatCardProps) {
-    const colorStyles = {
-        blue: {
-            iconClass: "text-blue-600 dark:text-blue-400",
-            bgClass: "bg-blue-50 dark:bg-blue-900/20",
-            positiveClass: "text-blue-600 dark:text-blue-400",
-            negativeClass: "text-red-600 dark:text-red-400"
-        },
-        green: {
-            iconClass: "text-green-600 dark:text-green-400",
-            bgClass: "bg-green-50 dark:bg-green-900/20",
-            positiveClass: "text-green-600 dark:text-green-400",
-            negativeClass: "text-red-600 dark:text-red-400"
-        },
-        purple: {
-            iconClass: "text-purple-600 dark:text-purple-400",
-            bgClass: "bg-purple-50 dark:bg-purple-900/20",
-            positiveClass: "text-purple-600 dark:text-purple-400",
-            negativeClass: "text-red-600 dark:text-red-400"
-        },
-        amber: {
-            iconClass: "text-amber-600 dark:text-amber-400",
-            bgClass: "bg-amber-50 dark:bg-amber-900/20",
-            positiveClass: "text-amber-600 dark:text-amber-400",
-            negativeClass: "text-red-600 dark:text-red-400"
-        },
-        teal: {
-            iconClass: "text-teal-600 dark:text-teal-400",
-            bgClass: "bg-teal-50 dark:bg-teal-900/20",
-            positiveClass: "text-teal-600 dark:text-teal-400",
-            negativeClass: "text-red-600 dark:text-red-400"
+export function StatCard({
+    title,
+    value,
+    change,
+    changeType = 'neutral',
+    icon,
+    trend,
+    color = 'blue'
+}: StatCardProps) {
+    const getChangeColor = () => {
+        switch (changeType) {
+            case 'positive':
+                return 'text-green-600';
+            case 'negative':
+                return 'text-red-600';
+            default:
+                return 'text-gray-600';
         }
     };
 
-    const styles = colorStyles[color];
+    const getColorClasses = () => {
+        const colorMap = {
+            blue: 'text-blue-600 bg-blue-50 border-blue-100',
+            green: 'text-green-600 bg-green-50 border-green-100',
+            purple: 'text-purple-600 bg-purple-50 border-purple-100',
+            yellow: 'text-yellow-600 bg-yellow-50 border-yellow-100',
+            red: 'text-red-600 bg-red-50 border-red-100',
+            gray: 'text-gray-600 bg-gray-50 border-gray-100',
+        };
+        return colorMap[color];
+    };
 
     return (
-        <Card className="shadow-sm overflow-hidden border border-gray-200 dark:border-gray-800">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</CardTitle>
-                <div className={`h-8 w-8 rounded-full ${styles.bgClass} flex items-center justify-center ${styles.iconClass}`}>
-                    {icon}
+        <Card className="p-6 hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+
+                    {/* Legacy change prop support */}
+                    {change && (
+                        <p className={`text-sm mt-1 ${getChangeColor()}`}>
+                            {change} from last period
+                        </p>
+                    )}
+
+                    {/* New trend prop support */}
+                    {trend && (
+                        <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                            {trend.value}
+                            <span>{trend.text}</span>
+                        </div>
+                    )}
                 </div>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
-                {trend && (
-                    <div className={`flex items-center pt-1 text-xs ${trend.isPositive ? styles.positiveClass : styles.negativeClass}`}>
-                        {trend.value}
-                        <span>{trend.text}</span>
+
+                {icon && (
+                    <div className={`p-3 rounded-lg ${getColorClasses()}`}>
+                        {typeof icon === 'string' ? (
+                            <div className="text-2xl">{icon}</div>
+                        ) : (
+                            <div className="text-2xl">{icon}</div>
+                        )}
                     </div>
                 )}
-            </CardContent>
+            </div>
         </Card>
     );
 } 

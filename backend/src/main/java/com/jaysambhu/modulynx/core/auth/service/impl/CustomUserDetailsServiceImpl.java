@@ -75,15 +75,13 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
             if (userCompanyRole.isActive()) {
                 Role role = userCompanyRole.getRole();
 
-                // Add the role itself with appropriate prefix
-                String roleName = role.isGlobalRole() ? "ROLE_" + role.getName().name()
-                        : "ROLE_" + role.getModuleType() + "_" + role.getName().name();
+                // Add the role itself (all roles are now global dairy roles)
+                String roleName = "ROLE_" + role.getName().name();
                 authorities.add(new SimpleGrantedAuthority(roleName));
 
                 // Add all permissions from the role
                 role.getPermissions().forEach(permission -> {
-                    String permissionName = role.isGlobalRole() ? "PERMISSION_" + permission.getName()
-                            : "PERMISSION_" + role.getModuleType() + "_" + permission.getName();
+                    String permissionName = "PERMISSION_" + permission.getName();
                     authorities.add(new SimpleGrantedAuthority(permissionName));
                 });
             }

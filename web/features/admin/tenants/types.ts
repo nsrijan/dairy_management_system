@@ -59,12 +59,12 @@ export function mapTenantResponse(response: TenantResponse): Tenant {
     };
 }
 
-// Backend response type
+// Backend response type (dairy-focused, no moduleType)
 export interface TenantResponse {
     id: string;
     name: string;
     subdomain: string;
-    moduleType: ModuleType;
+    // moduleType removed - dairy-only system
     active: boolean;
     currency: string;
     timezone: string;
@@ -84,11 +84,7 @@ export interface TenantResponse {
     };
 }
 
-export enum ModuleType {
-    DAIRY = 'DAIRY',
-    POTTERY = 'POTTERY',
-    GARMENTS = 'GARMENTS'
-}
+// ModuleType enum removed - system is now dairy-focused only
 
 export interface TenantsListResponse {
     tenants: TenantResponse[];
@@ -112,7 +108,7 @@ export interface TenantUserResponse {
 export interface TenantCreateRequest {
     name: string;
     subdomain: string;
-    moduleType: ModuleType;
+    // moduleType removed - dairy-only system
     currency: string;
     timezone: string;
 }
@@ -120,7 +116,7 @@ export interface TenantCreateRequest {
 export interface TenantUpdateRequest {
     name?: string;
     subdomain?: string;
-    moduleType?: ModuleType;
+    // moduleType removed - dairy-only system
     currency?: string;
     timezone?: string;
     active?: boolean;

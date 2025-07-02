@@ -2,24 +2,24 @@
  * Service for handling login-related API calls to the backend
  */
 
-interface LoginRequest {
-    usernameOrEmail: string;
+import { getCurrentSubdomain } from '@/lib/api';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+export interface LoginRequest {
+    username: string;
     password: string;
-    subdomain?: string; // Optional subdomain for tenant-specific login
 }
 
-interface LoginResponse {
+export interface LoginResponse {
     token: string;
     user: {
         id: string;
-        name: string;
+        username: string;
         email: string;
+        firstName: string;
+        lastName: string;
         role: string;
-    };
-    tenant?: {
-        id: string;
-        name: string;
-        domain: string; // Added domain field
     };
 }
 
@@ -53,103 +53,30 @@ interface BackendAuthResponse {
  * @returns Promise containing login response with token and user info
  */
 export async function loginUser(credentials: LoginRequest): Promise<LoginResponse> {
-    try {
-        // Get API URL from environment or use default
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
 
-        // Using the correct endpoint with the v1 version as specified in the Spring Boot config
-        const endpoint = `${apiUrl}/api/v1/auth/login`;
-        console.log('Calling API at:', endpoint);
-        console.log('With payload:', JSON.stringify({
-            usernameOrEmail: credentials.usernameOrEmail,
-            password: credentials.password
-        }));
-
-        // Set headers for the request
-        const headers: HeadersInit = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-
-        // Add Host header for tenant-specific login when in development
-        if (credentials.subdomain) {
-            console.log(`Adding subdomain context: ${credentials.subdomain}`);
-            // In production, this would be handled by the actual subdomain
-            // For local development, we need to simulate it with a custom header
-            headers['X-Tenant-Subdomain'] = credentials.subdomain;
-        }
-
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers,
-            // Use usernameOrEmail field name to match backend expectation
-            body: JSON.stringify({
-                usernameOrEmail: credentials.usernameOrEmail,
-                password: credentials.password
-            })
-        });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', [...response.headers.entries()]);
-
-        // Log the full response for debugging
-        const responseText = await response.text();
-        console.log('Response body:', responseText);
-
-        // If empty response or not JSON, handle accordingly
-        if (!responseText) {
-            throw new Error('The server returned an empty response');
-        }
-
-        let data: BackendAuthResponse;
-        try {
-            // Try to parse the response as JSON
-            data = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Failed to parse response as JSON:', e);
-            throw new Error('The server returned an invalid response format. Please contact support.');
-        }
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Login failed');
-        }
-
-        // Determine tenant domain based on tenant name and roles
-        const tenantDomain = data.data.primaryTenantName ?
-            determineTenantDomain(data.data.primaryTenantName, data.data.roles) : 'dairy';
-
-        // Map the backend response to our expected format
-        const authResponse: LoginResponse = {
-            token: data.data.accessToken,
-            user: {
-                id: data.data.userId.toString(),
-                name: `${data.data.firstName} ${data.data.lastName}`.trim(),
-                email: data.data.email,
-                // Convert backend role format (ROLE_SYSTEM_ADMIN) to our format (SUPER_ADMIN)
-                role: mapRoleFromBackend(data.data.roles[0])
-            },
-            tenant: data.data.primaryTenantId ? {
-                id: data.data.primaryTenantId.toString(),
-                name: data.data.primaryTenantName,
-                domain: tenantDomain
-            } : undefined
-        };
-
-        return authResponse;
-    } catch (error: any) {
-        console.error('Login error:', error);
-
-        // Improve error message for common issues
-        if (error.message.includes('fetch') || error.message.includes('network')) {
-            throw new Error('Could not connect to the server. Please check your internet connection.');
-        } else if (error instanceof SyntaxError) {
-            throw new Error('The server returned an invalid response. Please contact support.');
-        } else if (error.message.includes('403')) {
-            throw new Error('Access denied. Please check your credentials or contact support.');
-        }
-
-        throw error;
+    // Add tenant context for login if subdomain exists
+    const subdomain = getCurrentSubdomain();
+    if (subdomain) {
+        (headers as Record<string, string>)['X-Tenant-Subdomain'] = subdomain;
+        console.log(`[Auth] Login with tenant context: ${subdomain}`);
     }
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+    }
+
+    const result = await response.json();
+    return result.data;
 }
 
 /**
