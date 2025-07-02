@@ -7,7 +7,7 @@ import { getCurrentSubdomain } from '@/lib/api';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 export interface LoginRequest {
-    username: string;
+    usernameOrEmail: string;
     password: string;
 }
 
@@ -71,12 +71,36 @@ export async function loginUser(credentials: LoginRequest): Promise<LoginRespons
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        let errorMessage = 'Login failed';
+        try {
+            const error = await response.json();
+            errorMessage = error.message || error.error || `HTTP ${response.status}: ${response.statusText}`;
+        } catch (parseError) {
+            // If response is not JSON, use status text
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
     }
 
-    const result = await response.json();
-    return result.data;
+    try {
+        const result = await response.json();
+        const authData = result.data || result;
+
+        // Map backend AuthResponse to frontend LoginResponse
+        return {
+            token: authData.accessToken,
+            user: {
+                id: authData.userId?.toString() || '',
+                username: authData.username || '',
+                email: authData.email || '',
+                firstName: authData.firstName || '',
+                lastName: authData.lastName || '',
+                role: authData.roles?.[0]?.replace('ROLE_', '') || 'USER'
+            }
+        };
+    } catch (parseError) {
+        throw new Error('Invalid response from server');
+    }
 }
 
 /**

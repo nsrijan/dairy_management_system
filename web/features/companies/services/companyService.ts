@@ -4,7 +4,7 @@ export interface Company {
     id: string;
     name: string;
     description?: string;
-    active: boolean;
+    isActive: boolean;
     tenantId: string;
     createdAt: string;
     updatedAt: string;
@@ -15,13 +15,13 @@ export interface Company {
 export interface CreateCompanyRequest {
     name: string;
     description?: string;
-    active: boolean;
+    isActive: boolean;
 }
 
 export interface UpdateCompanyRequest {
     name?: string;
     description?: string;
-    active?: boolean;
+    isActive?: boolean;
 }
 
 /**

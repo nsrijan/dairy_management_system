@@ -66,12 +66,24 @@ export default function LoginPage() {
       // For local development, we need to pass it explicitly in the loginUser function
       // Only pass the subdomain if it's not null
       const loginCredentials = {
-        usernameOrEmail,
+        usernameOrEmail: usernameOrEmail,
         password,
         ...(subdomain ? { subdomain } : {})
       };
 
       const response = await loginUser(loginCredentials);
+
+      // Debug the actual response structure
+      console.log('Login response:', response);
+
+      // Check if we have the expected structure
+      if (!response || !response.token) {
+        throw new Error('Invalid response: missing token');
+      }
+
+      if (!response.user) {
+        throw new Error('Invalid response: missing user data');
+      }
 
       // Show success message
       console.log('Login successful, received token:', response.token.substring(0, 15) + '...');
@@ -89,8 +101,11 @@ export default function LoginPage() {
         setDebugInfo(`Note: You're logging in with tenant user privileges on the main domain.`);
       }
 
-      // Use the auth context to login
-      login(response.token, response.user, response.tenant);
+      // Use the auth context to login  
+      login(response.token, {
+        ...response.user,
+        name: `${response.user.firstName} ${response.user.lastName}`.trim()
+      });
 
       // Set success state to trigger the navigation effect
       setLoginSuccess(true);

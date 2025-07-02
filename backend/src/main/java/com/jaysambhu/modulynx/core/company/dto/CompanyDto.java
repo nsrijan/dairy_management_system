@@ -2,6 +2,7 @@ package com.jaysambhu.modulynx.core.company.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class CompanyDto {
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
+    @JsonProperty("isActive")
     private boolean isActive;
 
     private Long tenantId;

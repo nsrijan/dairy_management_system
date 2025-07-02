@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { formatDistanceToNow } from 'date-fns';
-import { type Company } from '../hooks/useCompanies';
+import { type Company } from '../services/companyService';
 
 interface CompanyListProps {
     companies: Company[];
@@ -46,15 +46,15 @@ export function CompanyList({ companies, onEdit, onDelete }: CompanyListProps) {
                                     </h3>
                                     <div className="flex items-center gap-2">
                                         <Switch
-                                            checked={company.active}
+                                            checked={company.isActive}
                                             className="data-[state=checked]:bg-green-500"
                                             disabled
                                         />
-                                        <span className={`text-sm font-medium ${company.active
+                                        <span className={`text-sm font-medium ${company.isActive
                                             ? 'text-green-600 dark:text-green-400'
                                             : 'text-gray-500 dark:text-gray-400'
                                             }`}>
-                                            {company.active ? 'Active' : 'Inactive'}
+                                            {company.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
                                 </div>
@@ -70,7 +70,7 @@ export function CompanyList({ companies, onEdit, onDelete }: CompanyListProps) {
                                         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                         <span>Created {formatDistanceToNow(new Date(company.createdAt), { addSuffix: true })}</span>
                                     </div>
-                                    {company.active && (
+                                    {company.isActive && (
                                         <div className="flex items-center gap-1">
                                             <CheckCircle className="h-3 w-3 text-green-500" />
                                             <span className="text-green-600 dark:text-green-400">Online</span>
