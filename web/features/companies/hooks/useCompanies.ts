@@ -4,10 +4,13 @@ import { useToast } from '@/components/ui/use-toast';
 import {
     companyService,
     adminCompanyService,
+} from '../services/companyService';
+import {
     Company,
     CreateCompanyRequest,
-    UpdateCompanyRequest
-} from '../services/companyService';
+    UpdateCompanyRequest,
+    CompanyDetails
+} from '../types';
 
 export interface UpdateCompanyData {
     id: string;
@@ -22,6 +25,17 @@ export function useCompanies() {
         queryKey: ['companies'],
         queryFn: () => companyService.getCompanies(token!),
         enabled: !!token,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}
+
+export function useCompanyDetails(companyId: string) {
+    const { token } = useAuth();
+
+    return useQuery({
+        queryKey: ['companies', companyId],
+        queryFn: () => companyService.getCompanyById(token!, companyId),
+        enabled: !!token && !!companyId,
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
 }

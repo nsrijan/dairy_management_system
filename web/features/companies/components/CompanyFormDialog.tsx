@@ -1,23 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Building2, CheckCircle, XCircle } from 'lucide-react';
+import * as z from 'zod';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Card } from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Building2, Save, X, CheckCircle, XCircle } from 'lucide-react';
+import { useCreateCompany, useUpdateCompany } from '../hooks/useCompanies';
+import { Company } from '../types';
 
 const companySchema = z.object({
     name: z.string().min(1, 'Company name is required').max(100, 'Name too long'),
@@ -46,14 +56,7 @@ export function CompanyFormDialog({
     description,
     initialData
 }: CompanyFormDialogProps) {
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors },
-    } = useForm<CompanyFormData>({
+    const form = useForm<CompanyFormData>({
         resolver: zodResolver(companySchema),
         defaultValues: {
             name: '',
@@ -61,6 +64,8 @@ export function CompanyFormDialog({
             isActive: true,
         },
     });
+
+    const { handleSubmit, reset, setValue, watch, control } = form;
 
     const isActive = watch('isActive');
 
@@ -108,120 +113,123 @@ export function CompanyFormDialog({
                     </div>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 pt-6">
-                    {/* Company Name Field */}
-                    <Card className="p-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
-                        <div className="space-y-3">
-                            <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Company Name *
-                            </Label>
-                            <Input
-                                id="name"
-                                {...register('name')}
-                                placeholder="Enter company name"
-                                disabled={isLoading}
-                                className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
-                            />
-                            {errors.name && (
-                                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                                    <XCircle className="h-3 w-3" />
-                                    {errors.name.message}
-                                </p>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 pt-6">
+                        {/* Company Name Field */}
+                        <FormField
+                            control={control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Company Name *</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="Enter company name"
+                                            disabled={isLoading}
+                                            className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )}
-                        </div>
-                    </Card>
+                        />
 
-                    {/* Description Field */}
-                    <Card className="p-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
-                        <div className="space-y-3">
-                            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Description
-                            </Label>
-                            <Textarea
-                                id="description"
-                                {...register('description')}
-                                placeholder="Enter company description (optional)"
-                                disabled={isLoading}
-                                rows={3}
-                                className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 resize-none"
-                            />
-                            {errors.description && (
-                                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                                    <XCircle className="h-3 w-3" />
-                                    {errors.description.message}
-                                </p>
+                        {/* Description Field */}
+                        <FormField
+                            control={control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            {...field}
+                                            placeholder="Enter company description (optional)"
+                                            disabled={isLoading}
+                                            rows={3}
+                                            className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )}
-                        </div>
-                    </Card>
+                        />
 
-                    {/* Active Status Toggle */}
-                    <Card className="p-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <Label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Company Status
-                                </Label>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {isActive ? 'Company is currently active and operational' : 'Company is inactive and won\'t appear in lists'}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2">
-                                    <Switch
-                                        id="isActive"
-                                        checked={isActive}
-                                        onCheckedChange={(checked) => setValue('isActive', checked)}
-                                        disabled={isLoading}
-                                        className="data-[state=checked]:bg-green-500"
-                                    />
-                                    <div className="flex items-center gap-1">
-                                        {isActive ? (
-                                            <CheckCircle className="h-4 w-4 text-green-500" />
-                                        ) : (
-                                            <XCircle className="h-4 w-4 text-gray-400" />
-                                        )}
-                                        <span className={`text-sm font-medium ${isActive
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-gray-500 dark:text-gray-400'
-                                            }`}>
-                                            {isActive ? 'Active' : 'Inactive'}
-                                        </span>
+                        {/* Active Status Toggle */}
+                        <FormField
+                            control={control}
+                            name="isActive"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Company Status</FormLabel>
+                                    <FormControl>
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {field.value ? 'Company is currently active and operational' : 'Company is inactive and won\'t appear in lists'}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                        disabled={isLoading}
+                                                        className="data-[state=checked]:bg-green-500"
+                                                    />
+                                                    <div className="flex items-center gap-1">
+                                                        {field.value ? (
+                                                            <CheckCircle className="h-4 w-4 text-green-500" />
+                                                        ) : (
+                                                            <XCircle className="h-4 w-4 text-gray-400" />
+                                                        )}
+                                                        <span className={`text-sm font-medium ${field.value
+                                                            ? 'text-green-600 dark:text-green-400'
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                            }`}>
+                                                            {field.value ? 'Active' : 'Inactive'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100 dark:border-gray-700">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                                disabled={isLoading}
+                                className="px-6 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isLoading}
+                                className="px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-lg disabled:opacity-50"
+                            >
+                                {isLoading ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Saving...
                                     </div>
-                                </div>
-                            </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        {initialData ? <CheckCircle className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
+                                        {initialData ? 'Update Company' : 'Create Company'}
+                                    </div>
+                                )}
+                            </Button>
                         </div>
-                    </Card>
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100 dark:border-gray-700">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            disabled={isLoading}
-                            className="px-6 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-lg disabled:opacity-50"
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Saving...
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    {initialData ? <CheckCircle className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                                    {initialData ? 'Update Company' : 'Create Company'}
-                                </div>
-                            )}
-                        </Button>
-                    </div>
-                </form>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     );

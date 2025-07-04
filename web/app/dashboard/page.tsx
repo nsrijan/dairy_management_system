@@ -1,217 +1,235 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers';
-import { useSubdomain } from '@/app/subdomain-login-helper';
-import { TenantAdminDashboard } from '@/features/dashboard/components/TenantAdminDashboard';
-import { FarmerDashboard } from '@/features/dashboard/components/FarmerDashboard';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { useRouter, usePathname } from 'next/navigation';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { getTenantName } from '@/features/navigation/getNavItems';
 import {
-    BarChart3,
-    Users,
     Building,
-    Settings,
-    Bell,
-    Search,
+    Users,
     Package,
-    LayoutDashboard,
-    FileText,
-    Calendar,
     CreditCard,
-    HelpCircle,
-    Menu,
-    LogOut,
-    Moon,
-    Sun,
-    User,
-    Settings2,
-    Droplets,
-    Truck,
-    Activity,
-    Database,
-    Heart,
+    Droplet,
+    CircleDollarSign,
+    ShoppingCart,
+    ArrowUpRight,
+    BarChart3,
     TrendingUp,
-    CheckCircle,
-    MapPin,
-    Car
+    DollarSign
 } from 'lucide-react';
-import { useTheme } from '@/app/providers';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { TenantAdminDashboard } from '@/features/dashboard/components/TenantAdminDashboard';
 
-interface NavItem {
+// Simple StatCard component for dashboard
+const StatCard = ({ title, value, icon, color, trend }: {
+    title: string;
+    value: string | number;
     icon: React.ReactNode;
-    label: string;
-    href: string;
-    badge?: string;
-    roles?: string[];
-}
-
-export default function DairyDashboardPage() {
-    const { user, tenant, isLoading, isAuthenticated, logout } = useAuth();
-    const { subdomain } = useSubdomain();
-    const { theme, setTheme } = useTheme();
-    const router = useRouter();
-    const pathname = usePathname();
-    const [currentRole, setCurrentRole] = useState<string | null>(null);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [notificationCount, setNotificationCount] = useState(2);
-
-    // Define navigation items based on role
-    const getSidebarNavItems = (role: string): NavItem[] => {
-        const commonItems: NavItem[] = [
-            {
-                icon: <LayoutDashboard className="h-5 w-5" />,
-                label: 'Dashboard',
-                href: '/dashboard'
-            },
-        ];
-
-        switch (role) {
-            case 'TENANT_ADMIN':
-            case 'DAIRY_ADMIN':
-            case 'DAIRY_TENANT_ADMIN':
-                return [
-                    ...commonItems,
-                    {
-                        icon: <Users className="h-5 w-5" />,
-                        label: 'User Management',
-                        href: '/users'
-                    },
-                    {
-                        icon: <Building className="h-5 w-5" />,
-                        label: 'Company Management',
-                        href: '/companies',
-                        badge: '3'
-                    },
-                    {
-                        icon: <Droplets className="h-5 w-5" />,
-                        label: 'Milk Collection',
-                        href: '/collection'
-                    },
-                    {
-                        icon: <Package className="h-5 w-5" />,
-                        label: 'Inventory',
-                        href: '/inventory'
-                    },
-                    {
-                        icon: <BarChart3 className="h-5 w-5" />,
-                        label: 'Reports',
-                        href: '/reports'
-                    },
-                    {
-                        icon: <Settings className="h-5 w-5" />,
-                        label: 'Settings',
-                        href: '/settings'
-                    },
-                ];
-
-            case 'DAIRY_FARMER':
-                return [
-                    ...commonItems,
-                    {
-                        icon: <Activity className="h-5 w-5" />,
-                        label: 'Livestock',
-                        href: '/livestock'
-                    },
-                    {
-                        icon: <Droplets className="h-5 w-5" />,
-                        label: 'Milk Production',
-                        href: '/production'
-                    },
-                    {
-                        icon: <Package className="h-5 w-5" />,
-                        label: 'Feed Management',
-                        href: '/feed'
-                    },
-                    {
-                        icon: <FileText className="h-5 w-5" />,
-                        label: 'Health Records',
-                        href: '/health'
-                    },
-                ];
-
-            case 'DAIRY_PRODUCTION_MANAGER':
-                return [
-                    ...commonItems,
-                    {
-                        icon: <BarChart3 className="h-5 w-5" />,
-                        label: 'Production Metrics',
-                        href: '/production-metrics'
-                    },
-                    {
-                        icon: <Settings2 className="h-5 w-5" />,
-                        label: 'Quality Control',
-                        href: '/quality'
-                    },
-                    {
-                        icon: <Package className="h-5 w-5" />,
-                        label: 'Inventory',
-                        href: '/inventory'
-                    },
-                    {
-                        icon: <Package className="h-5 w-5" />,
-                        label: 'Processing',
-                        href: '/processing'
-                    },
-                ];
-
-            case 'DAIRY_DELIVERY_STAFF':
-                return [
-                    ...commonItems,
-                    {
-                        icon: <Truck className="h-5 w-5" />,
-                        label: 'Delivery Routes',
-                        href: '/routes'
-                    },
-                    {
-                        icon: <Activity className="h-5 w-5" />,
-                        label: 'Delivery Status',
-                        href: '/deliveries'
-                    },
-                    {
-                        icon: <Users className="h-5 w-5" />,
-                        label: 'Customer Info',
-                        href: '/customers'
-                    },
-                    {
-                        icon: <Settings className="h-5 w-5" />,
-                        label: 'Vehicle Management',
-                        href: '/vehicles'
-                    },
-                ];
-
-            default:
-                return commonItems;
-        }
+    color: 'blue' | 'purple' | 'green' | 'yellow' | 'orange';
+    trend?: {
+        isPositive: boolean;
+        text: string;
+    };
+}) => {
+    const colorClasses = {
+        blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400',
+        purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400',
+        green: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400',
+        yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400',
+        orange: 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400'
     };
 
-    // Adjust sidebar based on screen size
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth < 1024) {
-                setSidebarOpen(false);
-            } else {
-                setSidebarOpen(true);
-            }
-        };
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center justify-between">
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+                    {trend && (
+                        <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            <ArrowUpRight className="h-4 w-4 mr-1" />
+                            {trend.text}
+                        </div>
+                    )}
+                </div>
+                <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+                    {icon}
+                </div>
+            </div>
+        </div>
+    );
+};
 
-        window.addEventListener('resize', handleResize);
-        handleResize();
+// Simple dashboard content for different roles
+const AdminDashboard = ({ user, tenant }: { user: any, tenant: string }) => (
+    <div className="space-y-6">
+        <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Welcome back, {user?.name || 'Administrator'}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+                Here's what's happening with {tenant} today.
+            </p>
+        </div>
 
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+                title="Total Tenants"
+                value={12}
+                icon={<Building className="h-5 w-5" />}
+                color="blue"
+                trend={{ isPositive: true, text: "+12.5% from last month" }}
+            />
+            <StatCard
+                title="Active Users"
+                value={156}
+                icon={<Users className="h-5 w-5" />}
+                color="purple"
+                trend={{ isPositive: true, text: "+5.2% from last month" }}
+            />
+            <StatCard
+                title="Monthly Revenue"
+                value="₹24,850"
+                icon={<CreditCard className="h-5 w-5" />}
+                color="green"
+                trend={{ isPositive: true, text: "+8.2% from last month" }}
+            />
+            <StatCard
+                title="Active Modules"
+                value={3}
+                icon={<Package className="h-5 w-5" />}
+                color="yellow"
+            />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Recent Activity
+                </h3>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">New tenant registered</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-500">2 hours ago</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">System backup completed</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-500">4 hours ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    System Stats
+                </h3>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Server Uptime</span>
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400">99.9%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Storage Used</span>
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">68%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Active Sessions</span>
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">42</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const DairyFarmerDashboard = ({ user, tenant }: { user: any, tenant: string }) => (
+    <div className="space-y-6">
+        <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Welcome, {user?.name || 'Farmer'}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+                {tenant} • Dairy Farm Dashboard
+            </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+                title="Milk This Week"
+                value="1,250 L"
+                icon={<Droplet className="h-5 w-5" />}
+                color="blue"
+                trend={{ isPositive: true, text: "+5.2% from last week" }}
+            />
+            <StatCard
+                title="Average Fat %"
+                value="4.2%"
+                icon={<BarChart3 className="h-5 w-5" />}
+                color="green"
+                trend={{ isPositive: true, text: "+0.2% from last week" }}
+            />
+            <StatCard
+                title="Current Balance"
+                value="₹15,420"
+                icon={<CircleDollarSign className="h-5 w-5" />}
+                color="purple"
+                trend={{ isPositive: true, text: "+₹2,100 today" }}
+            />
+            <StatCard
+                title="Monthly Purchases"
+                value="₹8,750"
+                icon={<ShoppingCart className="h-5 w-5" />}
+                color="yellow"
+                trend={{ isPositive: false, text: "-12% from last month" }}
+            />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Weekly Milk Production
+                </h3>
+                <div className="space-y-3">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => (
+                        <div key={day} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{day}</span>
+                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{180 + index * 5}L</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Recent Transactions
+                </h3>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Milk Payment</span>
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400">+₹2,100</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Feed Purchase</span>
+                        <span className="text-sm font-medium text-red-600 dark:text-red-400">-₹1,200</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Veterinary Services</span>
+                        <span className="text-sm font-medium text-red-600 dark:text-red-400">-₹450</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+export default function DairyDashboardPage() {
+    const { user, isLoading, isAuthenticated, tenant } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+    const [currentRole, setCurrentRole] = useState<string>('');
+
+    // Get subdomain for tenant context
+    const subdomain = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -245,17 +263,8 @@ export default function DairyDashboardPage() {
         return null; // Router push will handle redirect
     }
 
-    const getTenantName = () => {
-        return tenant?.name || subdomain || 'Unknown Tenant';
-    };
-
-    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
-
-    const sidebarNavItems = getSidebarNavItems(currentRole);
-
     const renderDashboardByRole = () => {
-        const tenantName = getTenantName();
+        const tenantName = getTenantName(tenant, subdomain);
 
         switch (currentRole) {
             case 'TENANT_ADMIN':
@@ -264,16 +273,16 @@ export default function DairyDashboardPage() {
                 return <TenantAdminDashboard user={user} tenant={tenantName} />;
 
             case 'DAIRY_FARMER':
-                return <FarmerDashboard user={user} tenant={tenantName} />;
+                return <DairyFarmerDashboard user={user} tenant={tenantName} />;
 
             default:
                 return (
                     <div className="flex items-center justify-center min-h-96">
                         <div className="text-center">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                                 Access Not Configured
                             </h2>
-                            <p className="text-gray-600">
+                            <p className="text-gray-600 dark:text-gray-400">
                                 Your role ({currentRole}) doesn't have a configured dashboard.
                             </p>
                         </div>
@@ -283,230 +292,11 @@ export default function DairyDashboardPage() {
     };
 
     return (
-        <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 ${theme === 'dark' ? 'dark' : ''}`}>
-            {/* Sidebar */}
-            <aside
-                className={cn(
-                    "fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300",
-                    sidebarOpen ? "w-64" : "w-20"
-                )}
-            >
-                {/* Sidebar Header */}
-                <div className="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-600 to-teal-600">
-                    <div className={cn("flex items-center", sidebarOpen ? "justify-between w-full" : "justify-center")}>
-                        {sidebarOpen && (
-                            <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-md bg-white flex items-center justify-center text-blue-600 font-bold text-xl mr-2">
-                                    <Droplets className="h-5 w-5" />
-                                </div>
-                                <span className="text-white font-bold text-lg">Dairy Management</span>
-                            </div>
-                        )}
-                        {!sidebarOpen && (
-                            <div className="w-10 h-10 rounded-md bg-white flex items-center justify-center text-blue-600 font-bold text-xl">
-                                <Droplets className="h-6 w-6" />
-                            </div>
-                        )}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn("text-white hover:bg-blue-700", !sidebarOpen && "hidden")}
-                            onClick={toggleSidebar}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Sidebar Navigation */}
-                <nav className="flex-1 overflow-y-auto py-4">
-                    <ul className="space-y-1 px-2">
-                        {sidebarNavItems.map((item, index) => {
-                            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
-
-                            return (
-                                <li key={index}>
-                                    <Link
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                                            isActive
-                                                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300"
-                                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60",
-                                            !sidebarOpen && "justify-center px-0"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "flex items-center justify-center",
-                                            isActive ? "text-blue-600 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"
-                                        )}>
-                                            {item.icon}
-                                        </div>
-
-                                        {sidebarOpen && (
-                                            <div className="flex flex-1 items-center justify-between ml-3">
-                                                <span>{item.label}</span>
-                                                {item.badge && (
-                                                    <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-800">{item.badge}</Badge>
-                                                )}
-                                            </div>
-                                        )}
-                                    </Link>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </nav>
-
-                {/* Sidebar Footer */}
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                    {sidebarOpen ? (
-                        <div className="flex items-center">
-                            <Avatar className="h-9 w-9 border-2 border-white dark:border-gray-800">
-                                <AvatarImage src="/avatar-placeholder.png" alt="Avatar" />
-                                <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                    {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-200">{user?.name || 'User'}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{currentRole}</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex justify-center">
-                            <Avatar className="h-9 w-9 border-2 border-white dark:border-gray-800">
-                                <AvatarImage src="/avatar-placeholder.png" alt="Avatar" />
-                                <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                    {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
-                    )}
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className={cn(
-                "flex-1 transition-all duration-300",
-                sidebarOpen ? "ml-64" : "ml-20"
-            )}>
-                {/* Top Navbar */}
-                <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 flex items-center justify-between px-6 sticky top-0 z-10">
-                    <div className="flex items-center">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="lg:hidden mr-2 dark:text-gray-300"
-                            onClick={toggleSidebar}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                Dairy Dashboard
-                            </h1>
-                            {getTenantName() && (
-                                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                                    {getTenantName()}
-                                </Badge>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                        <div className="relative hidden md:block">
-                            <Search className="h-4 w-4 absolute top-3 left-3 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="pl-9 pr-4 py-2 h-10 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            />
-                        </div>
-
-                        {/* Theme Toggle */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleTheme}
-                            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                        </Button>
-
-                        {/* Notifications Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="relative text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                    <Bell className="h-5 w-5" />
-                                    {notificationCount > 0 && (
-                                        <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center text-[10px] text-white font-bold">
-                                            {notificationCount}
-                                        </span>
-                                    )}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg">
-                                <div className="max-h-80 overflow-y-auto space-y-1">
-                                    <div className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                        <p className="font-medium text-sm text-gray-900 dark:text-white">Low Stock Alert</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Milk bottles - 15 units left</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">5 minutes ago</p>
-                                    </div>
-                                    <div className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                        <p className="font-medium text-sm text-gray-900 dark:text-white">Production Update</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Batch #2024-001 completed</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
-                                    </div>
-                                </div>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        {/* User Menu Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <div className="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-1 px-2 transition-colors">
-                                    <Avatar className="h-8 w-8 border border-gray-200 dark:border-gray-700">
-                                        <AvatarImage src="/avatar-placeholder.png" alt="Avatar" />
-                                        <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">
-                                            {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="ml-2 hidden md:block">
-                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-200">{user?.name || 'User'}</p>
-                                    </div>
-                                </div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg">
-                                <DropdownMenuLabel className="px-2 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
-                                    My Account
-                                </DropdownMenuLabel>
-                                <DropdownMenuItem className="rounded-md px-2 py-1.5 cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <User className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
-                                    <Link href="/profile">Profile</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-md px-2 py-1.5 cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <Settings className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
-                                    <Link href="/settings">Settings</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-1 bg-gray-200 dark:bg-gray-700" />
-                                <DropdownMenuItem
-                                    className="rounded-md px-2 py-1.5 cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                    onClick={logout}
-                                >
-                                    <LogOut className="h-4 w-4 mr-2" />
-                                    Log out
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </header>
-
-                {/* Page Content */}
-                <div className="dark:bg-gray-900">
-                    {renderDashboardByRole()}
-                </div>
-            </main>
-        </div>
+        <AppLayout
+            title="Dairy Dashboard"
+            tenantName={getTenantName(tenant, subdomain)}
+        >
+            {renderDashboardByRole()}
+        </AppLayout>
     );
 } 

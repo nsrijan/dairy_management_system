@@ -1,28 +1,10 @@
 import { authenticatedFetch, handleApiResponse } from '@/lib/api';
-
-export interface Company {
-    id: string;
-    name: string;
-    description?: string;
-    isActive: boolean;
-    tenantId: string;
-    createdAt: string;
-    updatedAt: string;
-    createdBy?: string;
-    updatedBy?: string;
-}
-
-export interface CreateCompanyRequest {
-    name: string;
-    description?: string;
-    isActive: boolean;
-}
-
-export interface UpdateCompanyRequest {
-    name?: string;
-    description?: string;
-    isActive?: boolean;
-}
+import {
+    Company,
+    CreateCompanyRequest,
+    UpdateCompanyRequest,
+    CompanyDetails
+} from '../types';
 
 /**
  * Company service for tenant-specific operations
