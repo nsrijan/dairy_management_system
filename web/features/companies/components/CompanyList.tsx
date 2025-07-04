@@ -1,12 +1,13 @@
 'use client';
 
-import { Building2, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Building2, Edit, Trash2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { formatDistanceToNow } from 'date-fns';
-import { type Company } from '../services/companyService';
+import Link from 'next/link';
+import { type Company } from '../types';
 
 interface CompanyListProps {
     companies: Company[];
@@ -81,6 +82,17 @@ export function CompanyList({ companies, onEdit, onDelete }: CompanyListProps) {
                         </div>
 
                         <div className="flex items-center gap-2 ml-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="h-9 px-3 text-gray-600 border-gray-300 hover:bg-green-50 hover:text-green-600 hover:border-green-300 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-green-900/20 dark:hover:text-green-400 transition-all duration-200"
+                            >
+                                <Link href={`/companies/${company.id}`}>
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Details
+                                </Link>
+                            </Button>
                             <Button
                                 variant="outline"
                                 size="sm"

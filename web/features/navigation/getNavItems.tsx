@@ -1,16 +1,23 @@
+import React from 'react';
 import {
     LayoutDashboard,
     Users,
-    Building2,
+    Building,
+    Droplets,
+    Package,
+    BarChart3,
+    Settings,
+    Activity,
+    FileText,
+    Settings2,
+    Truck,
+    Database,
     MapPin,
-    Warehouse,
     Factory,
     Store,
-    Package,
+    Warehouse,
     TestTube,
-    BarChart4,
-    Settings,
-    Database
+    BarChart4
 } from 'lucide-react';
 import { SidebarItem } from '@/components/layout/AppSidebar';
 
@@ -19,6 +26,14 @@ interface User {
     name: string;
     email: string;
     role: string;
+}
+
+export interface NavItem {
+    icon: React.ReactNode;
+    label: string;
+    href: string;
+    badge?: string;
+    roles?: string[];
 }
 
 /**
@@ -213,4 +228,141 @@ export function getNavItems(user: User | null): SidebarItem[] {
     }
 
     return [...defaultItems, ...roleItems];
+}
+
+export function getSidebarNavItems(role: string): NavItem[] {
+    const commonItems: NavItem[] = [
+        {
+            icon: <LayoutDashboard className="h-5 w-5" />,
+            label: 'Dashboard',
+            href: '/dashboard'
+        },
+    ];
+
+    switch (role) {
+        case 'TENANT_ADMIN':
+        case 'DAIRY_ADMIN':
+        case 'DAIRY_TENANT_ADMIN':
+            return [
+                ...commonItems,
+                {
+                    icon: <Users className="h-5 w-5" />,
+                    label: 'User Management',
+                    href: '/users'
+                },
+                {
+                    icon: <Building className="h-5 w-5" />,
+                    label: 'Company Management',
+                    href: '/companies',
+                    badge: '3'
+                },
+                {
+                    icon: <Droplets className="h-5 w-5" />,
+                    label: 'Milk Collection',
+                    href: '/collection'
+                },
+                {
+                    icon: <Package className="h-5 w-5" />,
+                    label: 'Inventory',
+                    href: '/inventory'
+                },
+                {
+                    icon: <BarChart3 className="h-5 w-5" />,
+                    label: 'Reports',
+                    href: '/reports'
+                },
+                {
+                    icon: <Settings className="h-5 w-5" />,
+                    label: 'Settings',
+                    href: '/settings'
+                },
+            ];
+
+        case 'DAIRY_FARMER':
+            return [
+                ...commonItems,
+                {
+                    icon: <Activity className="h-5 w-5" />,
+                    label: 'Livestock',
+                    href: '/livestock'
+                },
+                {
+                    icon: <Droplets className="h-5 w-5" />,
+                    label: 'Milk Production',
+                    href: '/production'
+                },
+                {
+                    icon: <Package className="h-5 w-5" />,
+                    label: 'Feed Management',
+                    href: '/feed'
+                },
+                {
+                    icon: <FileText className="h-5 w-5" />,
+                    label: 'Health Records',
+                    href: '/health'
+                },
+            ];
+
+        case 'DAIRY_PRODUCTION_MANAGER':
+            return [
+                ...commonItems,
+                {
+                    icon: <BarChart3 className="h-5 w-5" />,
+                    label: 'Production Metrics',
+                    href: '/production-metrics'
+                },
+                {
+                    icon: <Settings2 className="h-5 w-5" />,
+                    label: 'Quality Control',
+                    href: '/quality'
+                },
+                {
+                    icon: <Package className="h-5 w-5" />,
+                    label: 'Inventory',
+                    href: '/inventory'
+                },
+                {
+                    icon: <Package className="h-5 w-5" />,
+                    label: 'Processing',
+                    href: '/processing'
+                },
+            ];
+
+        case 'DAIRY_DELIVERY_STAFF':
+            return [
+                ...commonItems,
+                {
+                    icon: <Truck className="h-5 w-5" />,
+                    label: 'Delivery Routes',
+                    href: '/routes'
+                },
+                {
+                    icon: <Activity className="h-5 w-5" />,
+                    label: 'Delivery Status',
+                    href: '/deliveries'
+                },
+                {
+                    icon: <Users className="h-5 w-5" />,
+                    label: 'Customer Info',
+                    href: '/customers'
+                },
+                {
+                    icon: <Settings className="h-5 w-5" />,
+                    label: 'Vehicle Management',
+                    href: '/vehicles'
+                },
+            ];
+
+        default:
+            return commonItems;
+    }
+}
+
+export function getDisplayRole(role?: string): string | undefined {
+    if (!role) return undefined;
+    return role.replace('ROLE_', '');
+}
+
+export function getTenantName(tenant?: { name?: string }, subdomain?: string): string {
+    return tenant?.name || subdomain || 'Unknown Tenant';
 }

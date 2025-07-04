@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/card';
 import { CompanyList } from './CompanyList';
 import { CompanyFormDialog } from './CompanyFormDialog';
 import { DeleteCompanyDialog } from './DeleteCompanyDialog';
-import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany, type Company } from '../hooks/useCompanies';
+import { useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany } from '../hooks/useCompanies';
+import { Company } from '../types';
 
 export function CompanyManagement() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
