@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { MilkCollectionBranch, Factory, Shop, CompanyUser } from '../../types';
-import { AddMCBModal } from './AddMCBModal';
 
 interface EntityTabsProps {
     companyId: string;
@@ -165,7 +164,12 @@ export function EntityTabs({ companyId }: EntityTabsProps) {
                                         Manage your milk collection centers and chill vats
                                     </p>
                                 </div>
-                                <AddMCBModal companyId={companyId} onSuccess={handleMCBAdded} />
+                                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                                    <Link href={`/companies/${companyId}/mcb/new`}>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add MCB
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                         <div className="p-6">
@@ -217,7 +221,12 @@ export function EntityTabs({ companyId }: EntityTabsProps) {
                                         <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No MCBs found</h3>
                                         <p className="text-gray-600 dark:text-gray-400 mb-4">Get started by adding your first milk collection branch.</p>
-                                        <AddMCBModal companyId={companyId} onSuccess={handleMCBAdded} />
+                                        <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                                            <Link href={`/companies/${companyId}/mcb/new`}>
+                                                <Plus className="h-4 w-4 mr-2" />
+                                                Add MCB
+                                            </Link>
+                                        </Button>
                                     </div>
                                 )}
                             </div>

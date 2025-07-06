@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Map,
   Search,
@@ -32,8 +33,8 @@ export default function MCBListPage() {
 
   // Filter MCBs based on search query and status filter
   const filteredMCBs = mcbData.filter(mcb => {
-    const matchesSearch = mcb.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         mcb.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = mcb.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mcb.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || mcb.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -51,8 +52,13 @@ export default function MCBListPage() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and monitor all your milk collection branches</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button className="bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-700">
-            <Plus className="mr-2 h-4 w-4" /> Add New MCB
+          <Button
+            asChild
+            className="bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-700"
+          >
+            <Link href="/companies">
+              <Plus className="mr-2 h-4 w-4" /> Add New MCB
+            </Link>
           </Button>
         </div>
       </div>
@@ -94,8 +100,8 @@ export default function MCBListPage() {
       {/* MCB Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMCBs.map((mcb) => (
-          <Card 
-            key={mcb.id} 
+          <Card
+            key={mcb.id}
             className="overflow-hidden border-none shadow-sm hover:shadow-md cursor-pointer transition-shadow"
             onClick={() => navigateToMCB(mcb.id)}
           >
@@ -104,10 +110,10 @@ export default function MCBListPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">{mcb.name}</CardTitle>
-                    <Badge 
+                    <Badge
                       className={
-                        mcb.status === 'active' 
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' 
+                        mcb.status === 'active'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400'
                           : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400'
                       }
                     >
@@ -149,11 +155,10 @@ export default function MCBListPage() {
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Today's Collection</p>
                   <div className="flex items-center mt-1">
                     <p className="text-lg font-bold text-gray-800 dark:text-white">{mcb.todaysCollection} L</p>
-                    <div className={`flex items-center ml-2 text-xs ${
-                      mcb.collectionTrend === 'up' 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-red-600 dark:text-red-400'
-                    }`}>
+                    <div className={`flex items-center ml-2 text-xs ${mcb.collectionTrend === 'up'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                      }`}>
                       {mcb.collectionTrend === 'up' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                     </div>
                   </div>
@@ -166,8 +171,8 @@ export default function MCBListPage() {
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Avg. Quality</p>
                   <div className="flex items-center mt-1">
                     <Badge className={`
-                      ${mcb.avgQuality === 'A' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' 
+                      ${mcb.avgQuality === 'A'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400'
                         : 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-400'
                       }
                     `}>
@@ -198,12 +203,12 @@ export default function MCBListPage() {
           <Map className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">No branches found</h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {searchQuery 
-              ? `No branches matching "${searchQuery}" were found.` 
+            {searchQuery
+              ? `No branches matching "${searchQuery}" were found.`
               : "There are no milk collection branches that match your filters."}
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               setSearchQuery('');
               setStatusFilter('all');
