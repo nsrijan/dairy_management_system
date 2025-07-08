@@ -57,18 +57,82 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest loginRequest) {
         log.debug("Attempting to authenticate user: {}", loginRequest.getUsernameOrEmail());
 
-        // Authenticate the user
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(),
-                        loginRequest.getPassword()));
+        Long currentTenantId = TenantContext.getCurrentTenant();
+        boolean isSuperAdminContext = TenantContext.isSuperAdmin();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.debug("Login context: tenantId={}, isSuperAdmin={}", currentTenantId, isSuperAdminContext);
 
-        // Get user details from the authenticated user
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new BadRequestException("User not found"));
+        User user;
+
+        if (isSuperAdminContext) {
+            // Admin domain access - only allow system admin users
+            log.debug("Processing admin domain login for user: {}", loginRequest.getUsernameOrEmail());
+
+            user = userRepository.findSystemAdminByUsernameOrEmail(loginRequest.getUsernameOrEmail())
+                    .orElseThrow(() -> new BadRequestException(
+                            "Admin credentials not found or user is not a system administrator"));
+
+            // Validate password manually
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                log.warn("Invalid password for admin user: {}", loginRequest.getUsernameOrEmail());
+                throw new BadRequestException("Invalid credentials");
+            }
+
+            // Verify user is active
+            if (!user.isActive()) {
+                log.warn("Inactive admin user attempted login: {}", loginRequest.getUsernameOrEmail());
+                throw new BadRequestException("Account is inactive");
+            }
+
+            log.info("System admin login successful: {}", user.getUsername());
+
+        } else {
+            // Tenant domain access - only allow tenant-specific users
+            if (currentTenantId == null) {
+                log.error("No tenant context found for tenant domain access");
+                throw new BadRequestException("Tenant context not found");
+            }
+
+            log.debug("Processing tenant domain login for user: {} in tenant: {}",
+                    loginRequest.getUsernameOrEmail(), currentTenantId);
+
+            user = userRepository.findFirstByUsernameOrEmailAndPrimaryTenantId(
+                    loginRequest.getUsernameOrEmail(), currentTenantId)
+                    .orElseThrow(() -> new BadRequestException("User not found in this tenant"));
+
+            // Validate password manually
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                log.warn("Invalid password for tenant user: {}", loginRequest.getUsernameOrEmail());
+                throw new BadRequestException("Invalid credentials");
+            }
+
+            // Verify user is active
+            if (!user.isActive()) {
+                log.warn("Inactive tenant user attempted login: {}", loginRequest.getUsernameOrEmail());
+                throw new BadRequestException("Account is inactive");
+            }
+
+            // Verify user belongs to the correct tenant
+            if (!user.getPrimaryTenant().getId().equals(currentTenantId)) {
+                log.warn("User {} attempted to login from wrong tenant domain. User tenant: {}, Request tenant: {}",
+                        user.getUsername(), user.getPrimaryTenant().getId(), currentTenantId);
+                throw new BadRequestException("Access denied: User not authorized for this tenant");
+            }
+
+            // Ensure system admin cannot login from tenant subdomains
+            boolean isSystemAdmin = user.getUserCompanyRoles().stream()
+                    .anyMatch(ucr -> ucr.getRole().getName().name().equals("SYSTEM_ADMIN"));
+
+            if (isSystemAdmin) {
+                log.warn("System admin {} attempted to login from tenant subdomain", user.getUsername());
+                throw new BadRequestException("System administrators cannot login from tenant subdomains");
+            }
+
+            log.info("Tenant user login successful: {} for tenant: {}", user.getUsername(), currentTenantId);
+        }
+
+        // Create UserDetails for token generation
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
         // Get roles and permissions
         List<String> roles = userDetails.getAuthorities().stream()
@@ -81,11 +145,13 @@ public class AuthServiceImpl implements AuthService {
                 .filter(authority -> authority.startsWith("PERMISSION_"))
                 .collect(Collectors.toList());
 
-        // Generate token with comprehensive user information
-        String token = jwtService.generateToken(userDetails, user.getId(), user.getPrimaryTenant().getId());
-
         // Get available companies for the user
         Set<Long> companyIds = userCompanyRoleRepository.findAllCompanyIdsByUserId(user.getId());
+
+        // Generate token with comprehensive user information including company access
+        // For super admin context, use SUPER_ADMIN_CONTEXT value in token
+        Long tokenTenantId = isSuperAdminContext ? TenantContext.SUPER_ADMIN_CONTEXT : currentTenantId;
+        String token = jwtService.generateToken(userDetails, user.getId(), tokenTenantId, companyIds);
 
         // Create the auth response
         return AuthResponse.builder()

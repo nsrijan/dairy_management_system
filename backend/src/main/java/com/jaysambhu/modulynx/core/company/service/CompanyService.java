@@ -88,4 +88,32 @@ public interface CompanyService {
      * @return List of companies with admin count
      */
     List<CompanyWithAdminCountDto> getAllCompaniesWithAdminCountWithTenantId(Long tenantId);
+
+    /**
+     * Get company-specific data (uses CompanyContext)
+     * This method demonstrates how to use CompanyContext for company-scoped
+     * operations
+     * 
+     * @return Company details for the current company context
+     */
+    CompanyDto getCurrentCompanyData();
+
+    /**
+     * Create a company-specific resource (uses CompanyContext)
+     * This method demonstrates how to use CompanyContext for creating
+     * company-scoped resources
+     * 
+     * @param resourceData The resource data to create
+     * @return The created resource data
+     */
+    Object createCompanyResource(Object resourceData);
+
+    /**
+     * Get company-specific metrics (uses CompanyContext)
+     * This method demonstrates how to use CompanyContext for analytics and
+     * reporting
+     * 
+     * @return Company metrics for the current company context
+     */
+    Object getCompanyMetrics();
 }

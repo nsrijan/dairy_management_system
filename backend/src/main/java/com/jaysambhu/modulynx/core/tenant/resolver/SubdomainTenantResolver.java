@@ -47,6 +47,12 @@ public class SubdomainTenantResolver {
         if (developmentMode && StringUtils.hasText(tenantSubdomainHeader)) {
             log.debug("Using X-Tenant-Subdomain header in development mode: {}", tenantSubdomainHeader);
 
+            // Special handling for admin subdomain - always return SUPER_ADMIN_CONTEXT
+            if ("admin".equals(tenantSubdomainHeader)) {
+                log.debug("Admin subdomain detected via header, setting super admin context");
+                return TenantContext.SUPER_ADMIN_CONTEXT;
+            }
+
             // If this is a valid tenant subdomain, use it
             try {
                 Tenant tenant = tenantService.findActiveBySlug(tenantSubdomainHeader);
@@ -65,8 +71,15 @@ public class SubdomainTenantResolver {
 
         String subdomain = extractSubdomain(host);
 
+        // Special handling for admin subdomain
+        if ("admin".equals(subdomain)) {
+            log.debug("Admin subdomain detected: {}, setting super admin context", subdomain);
+            return TenantContext.SUPER_ADMIN_CONTEXT;
+        }
+
         if (!StringUtils.hasText(subdomain) || reservedSubdomains.contains(subdomain)) {
-            // Use default tenant for reserved or empty subdomains
+            // Use default tenant for reserved or empty subdomains (excluding admin which is
+            // handled above)
             log.debug("Using default tenant for reserved or empty subdomain: {}", subdomain);
             Tenant defaultTenant = tenantService.findBySlug(defaultTenantSlug);
             return defaultTenant.getId();

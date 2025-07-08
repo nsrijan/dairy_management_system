@@ -2,6 +2,7 @@ package com.jaysambhu.modulynx.core.company.service.impl;
 
 import com.jaysambhu.modulynx.common.exception.BadRequestException;
 import com.jaysambhu.modulynx.common.service.AbstractTenantAwareService;
+import com.jaysambhu.modulynx.context.CompanyContext;
 import com.jaysambhu.modulynx.context.TenantContext;
 import com.jaysambhu.modulynx.core.company.dto.CompanyDto;
 import com.jaysambhu.modulynx.core.company.dto.CompanyWithAdminCountDto;
@@ -23,7 +24,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -164,6 +167,9 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
                 });
     }
 
+    /**
+     * Convert a Company entity to CompanyDto
+     */
     private CompanyDto mapToDto(Company company) {
         return CompanyDto.builder()
                 .id(company.getId())
@@ -172,8 +178,8 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
                 .isActive(company.isActive())
                 .tenantId(company.getTenant().getId())
                 .createdAt(company.getCreatedAt())
-                .createdBy(company.getCreatedBy())
                 .updatedAt(company.getUpdatedAt())
+                .createdBy(company.getCreatedBy())
                 .updatedBy(company.getUpdatedBy())
                 .build();
     }
@@ -232,5 +238,97 @@ public class CompanyServiceImpl extends AbstractTenantAwareService implements Co
                 .lastName(user.getLastName())
                 .isActive(user.isActive())
                 .build();
+    }
+
+    // ============ CompanyContext Usage Examples ============
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyDto getCurrentCompanyData() {
+        // Get the current company ID from CompanyContext
+        Long companyId = CompanyContext.get();
+
+        if (companyId == null) {
+            throw new BadRequestException(
+                    "No company context found. This method should be called from a company-specific endpoint.");
+        }
+
+        log.debug("Getting company data for company ID: {}", companyId);
+
+        // Use the company ID to fetch company-specific data
+        Company company = findCompanyById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+
+        log.info("Retrieved company data for company: {} (ID: {})", company.getName(), companyId);
+
+        return mapToDto(company);
+    }
+
+    @Override
+    @Transactional
+    public Object createCompanyResource(Object resourceData) {
+        // Get the current company ID from CompanyContext
+        Long companyId = CompanyContext.get();
+
+        if (companyId == null) {
+            throw new BadRequestException(
+                    "No company context found. This method should be called from a company-specific endpoint.");
+        }
+
+        log.debug("Creating resource for company ID: {}", companyId);
+
+        // Validate company exists and user has access
+        Company company = findCompanyById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+
+        // Example: Create a company-specific resource
+        // In a real implementation, this would create actual business resources
+        // like departments, branches, products, etc.
+        Map<String, Object> createdResource = new HashMap<>();
+        createdResource.put("companyId", companyId);
+        createdResource.put("companyName", company.getName());
+        createdResource.put("resourceData", resourceData);
+        createdResource.put("createdAt", System.currentTimeMillis());
+
+        log.info("Created resource for company: {} (ID: {})", company.getName(), companyId);
+
+        return createdResource;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Object getCompanyMetrics() {
+        // Get the current company ID from CompanyContext
+        Long companyId = CompanyContext.get();
+
+        if (companyId == null) {
+            throw new BadRequestException(
+                    "No company context found. This method should be called from a company-specific endpoint.");
+        }
+
+        log.debug("Getting metrics for company ID: {}", companyId);
+
+        // Validate company exists
+        Company company = findCompanyById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+
+        // Example: Get company-specific metrics
+        // In a real implementation, this would fetch actual business metrics
+        // like user count, revenue, activity, etc.
+        Map<String, Object> metrics = new HashMap<>();
+        metrics.put("companyId", companyId);
+        metrics.put("companyName", company.getName());
+
+        // Get user count for this company
+        List<UserCompanyRole> userRoles = userCompanyRoleRepository.findByCompanyId(companyId);
+        metrics.put("userCount", userRoles.size());
+
+        // Additional metrics could be added here
+        metrics.put("isActive", company.isActive());
+        metrics.put("tenantId", company.getTenant().getId());
+
+        log.info("Retrieved metrics for company: {} (ID: {})", company.getName(), companyId);
+
+        return metrics;
     }
 }
