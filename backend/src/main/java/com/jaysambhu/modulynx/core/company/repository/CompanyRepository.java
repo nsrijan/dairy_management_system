@@ -4,6 +4,8 @@ import com.jaysambhu.modulynx.core.company.model.Company;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -74,4 +76,22 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
      * @return Optional containing the first company if found
      */
     Optional<Company> findFirstByTenantId(Long tenantId);
+
+    /**
+     * Example: Find company-specific data using CompanyContext
+     * This method demonstrates how repository methods can leverage CompanyContext
+     * for automatic scoping in business operations.
+     * 
+     * Note: This is a conceptual example. In practice, you would use CompanyContext
+     * in service methods that call standard repository methods.
+     */
+    @Query("SELECT c FROM Company c WHERE c.id = :companyId")
+    Optional<Company> findByIdForCurrentCompany(@Param("companyId") Long companyId);
+
+    /**
+     * Example: Custom query that could use CompanyContext for additional filtering
+     * This demonstrates how custom queries can incorporate company-specific logic.
+     */
+    @Query("SELECT c FROM Company c WHERE c.id = :companyId AND c.isActive = true")
+    Optional<Company> findActiveCompanyById(@Param("companyId") Long companyId);
 }

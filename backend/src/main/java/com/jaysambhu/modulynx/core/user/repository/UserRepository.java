@@ -96,4 +96,54 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE (u.firstName LIKE %:searchTerm% OR u.lastName LIKE %:searchTerm%) AND u.primaryTenant.id = :tenantId")
     Page<User> searchUsersByName(@Param("searchTerm") String searchTerm, @Param("tenantId") Long tenantId,
             Pageable pageable);
+
+    /**
+     * Find a user by username and tenant ID.
+     *
+     * @param username The username to search for
+     * @param tenantId The tenant ID to filter by
+     * @return An Optional containing the user if found
+     */
+    Optional<User> findByUsernameAndPrimaryTenantId(String username, Long tenantId);
+
+    /**
+     * Find a user by email and tenant ID.
+     *
+     * @param email    The email to search for
+     * @param tenantId The tenant ID to filter by
+     * @return An Optional containing the user if found
+     */
+    Optional<User> findByEmailAndPrimaryTenantId(String email, Long tenantId);
+
+    /**
+     * Find users by username or email and tenant ID.
+     *
+     * @param usernameOrEmail The username or email to search for
+     * @param tenantId        The tenant ID to filter by
+     * @return List of users matching the criteria
+     */
+    @Query("SELECT u FROM User u WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND u.primaryTenant.id = :tenantId")
+    List<User> findByUsernameOrEmailAndPrimaryTenantId(@Param("usernameOrEmail") String usernameOrEmail,
+            @Param("tenantId") Long tenantId);
+
+    /**
+     * Find a user by username or email and tenant ID, returning the first match.
+     *
+     * @param usernameOrEmail The username or email to search for
+     * @param tenantId        The tenant ID to filter by
+     * @return An Optional containing the user if found
+     */
+    default Optional<User> findFirstByUsernameOrEmailAndPrimaryTenantId(String usernameOrEmail, Long tenantId) {
+        List<User> users = findByUsernameOrEmailAndPrimaryTenantId(usernameOrEmail, tenantId);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
+    }
+
+    /**
+     * Find system admin users (users with SYSTEM_ADMIN role)
+     *
+     * @param usernameOrEmail The username or email to search for
+     * @return Optional containing the system admin user if found
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.userCompanyRoles ucr JOIN ucr.role r WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND r.name = 'SYSTEM_ADMIN'")
+    Optional<User> findSystemAdminByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
 }

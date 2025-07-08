@@ -65,16 +65,8 @@ app:
   domain: localhost
   development-mode: true  # Enable development mode for local testing
   tenant:
-    default-tenant: system
-    reserved-subdomains:
-      - www
-      - admin
-      - api
-      - auth
-      - mail
-      - blog
-      - docs
-      - status
+    default: system
+    reserved: www,admin,api,auth,mail,blog,docs,status
   admin:
     username: admin
     password: admin@123

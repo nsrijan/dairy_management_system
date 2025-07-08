@@ -11,11 +11,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,6 +87,23 @@ public class JwtService {
     }
 
     /**
+     * Extract the accessible company IDs from a JWT token
+     *
+     * @param token The JWT token
+     * @return List of accessible company IDs
+     */
+    @SuppressWarnings("unchecked")
+    public List<Long> extractAccessibleCompanyIds(String token) {
+        List<String> companyIdStrings = extractClaim(token, claims -> claims.get("accessibleCompanyIds", List.class));
+        if (companyIdStrings == null) {
+            return new ArrayList<>();
+        }
+        return companyIdStrings.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Generate a token for a user with no extra claims
      *
      * @param userDetails The user details
@@ -104,6 +123,37 @@ public class JwtService {
     public String generateToken(UserDetails userDetails, Long tenantId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("tenantId", tenantId.toString());
+        return generateToken(claims, userDetails);
+    }
+
+    /**
+     * Generate a token for a user with comprehensive information including company
+     * access
+     *
+     * @param userDetails The user details
+     * @param userId      The user ID
+     * @param tenantId    The tenant ID
+     * @param companyIds  The accessible company IDs
+     * @return The generated JWT token
+     */
+    public String generateToken(UserDetails userDetails, Long userId, Long tenantId, Set<Long> companyIds) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId.toString());
+        claims.put("tenantId", tenantId.toString());
+
+        // Extract roles and permissions from authorities
+        List<String> roles = extractRolesFromAuthorities(userDetails.getAuthorities());
+        List<String> permissions = extractPermissionsFromAuthorities(userDetails.getAuthorities());
+
+        claims.put("roles", roles);
+        claims.put("permissions", permissions);
+
+        // Add accessible company IDs as string list for JSON compatibility
+        List<String> companyIdStrings = companyIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+        claims.put("accessibleCompanyIds", companyIdStrings);
+
         return generateToken(claims, userDetails);
     }
 
