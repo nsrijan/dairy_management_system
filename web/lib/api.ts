@@ -64,7 +64,7 @@ export async function authenticatedFetch(
     token: string,
     options: RequestInit = {}
 ): Promise<Response> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${getApiBaseUrl()}${endpoint}`;
 
     const headers: HeadersInit = {
         'Authorization': `Bearer ${token}`,

@@ -8,7 +8,6 @@ import com.jaysambhu.modulynx.core.user.model.Role;
 import com.jaysambhu.modulynx.core.user.model.RoleName;
 import com.jaysambhu.modulynx.core.user.model.User;
 import com.jaysambhu.modulynx.core.user.model.UserCompanyRole;
-import com.jaysambhu.modulynx.core.user.model.UserType;
 import com.jaysambhu.modulynx.core.user.repository.RoleRepository;
 import com.jaysambhu.modulynx.core.user.repository.UserCompanyRoleRepository;
 import com.jaysambhu.modulynx.core.user.repository.UserRepository;
@@ -78,33 +77,33 @@ public class DataSeeder implements CommandLineRunner {
         Company systemCompany = getOrCreateSystemCompany(systemTenant);
 
         // Create the system admin user
-        User adminUser = User.builder()
-                .username("admin")
-                .email("admin@dms.com")
+        User systemAdmin = User.builder()
+                .username("system_admin")
+                .email("system.admin@modulynx.com")
                 .password(passwordEncoder.encode("admin123"))
                 .firstName("System")
-                .lastName("Administrator")
+                .lastName("Admin")
+                .phone("1234567890")
                 .isActive(true)
                 .isEmailVerified(true)
                 .isPhoneVerified(true)
-                .userType(UserType.INTERNAL)
                 .primaryTenant(systemTenant)
                 .build();
 
-        adminUser.setCreatedAt(LocalDateTime.now());
-        adminUser.setUpdatedAt(LocalDateTime.now());
-        adminUser.setVersion(0L);
+        systemAdmin.setCreatedAt(LocalDateTime.now());
+        systemAdmin.setUpdatedAt(LocalDateTime.now());
+        systemAdmin.setVersion(0L);
 
         // Save and flush to ensure the entity is persisted with an ID
-        adminUser = userRepository.saveAndFlush(adminUser);
+        systemAdmin = userRepository.saveAndFlush(systemAdmin);
 
         // Make sure user is detached and reattached to avoid any issues
-        entityManager.detach(adminUser);
-        adminUser = entityManager.find(User.class, adminUser.getId());
+        entityManager.detach(systemAdmin);
+        systemAdmin = entityManager.find(User.class, systemAdmin.getId());
 
         // Assign the system admin role to the admin user for the system company
         UserCompanyRole userCompanyRole = UserCompanyRole.builder()
-                .user(adminUser)
+                .user(systemAdmin)
                 .company(systemCompany)
                 .role(systemAdminRole)
                 .isActive(true)
@@ -116,7 +115,7 @@ public class DataSeeder implements CommandLineRunner {
 
         userCompanyRoleRepository.save(userCompanyRole);
 
-        log.info("System administrator user created successfully with ID: {}", adminUser.getId());
+        log.info("System administrator user created successfully with ID: {}", systemAdmin.getId());
     }
 
     /**

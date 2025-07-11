@@ -1,7 +1,6 @@
 package com.jaysambhu.modulynx.core.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.jaysambhu.modulynx.core.user.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -44,8 +43,6 @@ public class UserDto {
     private boolean isEmailVerified;
 
     private boolean isPhoneVerified;
-
-    private UserType userType;
 
     private Long primaryTenantId;
 

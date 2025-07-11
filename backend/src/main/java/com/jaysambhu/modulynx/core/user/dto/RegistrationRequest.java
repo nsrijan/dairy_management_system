@@ -1,6 +1,5 @@
 package com.jaysambhu.modulynx.core.user.dto;
 
-import com.jaysambhu.modulynx.core.user.model.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -38,9 +37,6 @@ public class RegistrationRequest {
     private String lastName;
 
     private String phone;
-
-    @NotNull(message = "User type is required")
-    private UserType userType;
 
     @NotNull(message = "Tenant ID is required")
     private Long tenantId;

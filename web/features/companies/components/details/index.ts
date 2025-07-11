@@ -1,4 +1,3 @@
+export { CompanyDetails } from './CompanyDetails';
 export { CompanyOverview } from './CompanyOverview';
-export { CompanyStatsCards } from './CompanyStatsCards';
-export { EntityTabs } from './EntityTabs';
-export { AddMCBModal } from './AddMCBModal'; 
+export { McbOverview } from './McbOverview'; 

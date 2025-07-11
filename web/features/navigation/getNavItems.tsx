@@ -72,7 +72,7 @@ export function getNavItems(user: User | null): SidebarItem[] {
             {
                 icon: <MapPin className="h-5 w-5" />,
                 label: 'Milk Collection Centers',
-                href: '/mcb'
+                href: '/milkCollectionBranch'
             },
             {
                 icon: <Factory className="h-5 w-5" />,
@@ -139,7 +139,7 @@ export function getNavItems(user: User | null): SidebarItem[] {
             {
                 icon: <MapPin className="h-5 w-5" />,
                 label: 'My Collection Center',
-                href: '/mcb'
+                href: '/milkCollectionBranch'
             },
             {
                 icon: <Users className="h-5 w-5" />,
@@ -184,7 +184,7 @@ export function getNavItems(user: User | null): SidebarItem[] {
             {
                 icon: <MapPin className="h-5 w-5" />,
                 label: 'Collection Center',
-                href: '/mcb'
+                href: '/milkCollectionBranch'
             },
             {
                 icon: <TestTube className="h-5 w-5" />,
