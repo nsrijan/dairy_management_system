@@ -4,8 +4,6 @@ import com.jaysambhu.modulynx.common.entity.BaseEntity;
 import com.jaysambhu.modulynx.core.tenant.model.Tenant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -63,10 +61,6 @@ public class User extends BaseEntity {
 
     @Column(name = "is_phone_verified", nullable = false)
     private boolean isPhoneVerified;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "user_type", nullable = false)
-    private UserType userType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "primary_tenant_id", nullable = false)

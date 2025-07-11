@@ -146,4 +146,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT DISTINCT u FROM User u JOIN u.userCompanyRoles ucr JOIN ucr.role r WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND r.name = 'SYSTEM_ADMIN'")
     Optional<User> findSystemAdminByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
+
+    /**
+     * Find a user by ID and company ID.
+     *
+     * @param userId    The user ID
+     * @param companyId The company ID
+     * @return Optional containing the user if found
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.userCompanyRoles ucr WHERE u.id = :userId AND ucr.company.id = :companyId")
+    Optional<User> findByIdAndCompany_Id(@Param("userId") Long userId, @Param("companyId") Long companyId);
+
+    /**
+     * Find a user by username and company ID.
+     *
+     * @param username  The username
+     * @param companyId The company ID
+     * @return Optional containing the user if found
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.userCompanyRoles ucr WHERE u.username = :username AND ucr.company.id = :companyId")
+    Optional<User> findByUsernameAndCompany_Id(@Param("username") String username, @Param("companyId") Long companyId);
+
+    /**
+     * Find users by company ID (alias for existing method for consistency).
+     *
+     * @param companyId The company ID
+     * @return List of users associated with the company
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.userCompanyRoles ucr WHERE ucr.company.id = :companyId")
+    List<User> findByCompany_Id(@Param("companyId") Long companyId);
 }

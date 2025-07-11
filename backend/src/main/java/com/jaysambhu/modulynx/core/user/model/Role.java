@@ -41,10 +41,6 @@ public class Role extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role_type", nullable = false)
-    private RoleType roleType;
-
     @ManyToMany
     @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new HashSet<>();

@@ -12,7 +12,6 @@ import com.jaysambhu.modulynx.core.tenant.service.TenantService;
 import com.jaysambhu.modulynx.core.user.model.Role;
 import com.jaysambhu.modulynx.core.user.model.RoleName;
 import com.jaysambhu.modulynx.core.user.model.User;
-import com.jaysambhu.modulynx.core.user.model.UserType;
 import com.jaysambhu.modulynx.core.user.model.UserCompanyRole;
 import com.jaysambhu.modulynx.core.user.repository.RoleRepository;
 import com.jaysambhu.modulynx.core.user.repository.UserRepository;
@@ -74,7 +73,6 @@ public class TenantAdminServiceImpl implements TenantAdminService {
                                 .isActive(true)
                                 .isEmailVerified(false)
                                 .isPhoneVerified(false)
-                                .userType(UserType.INTERNAL)
                                 .primaryTenant(tenant)
                                 .build();
 

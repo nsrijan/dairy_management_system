@@ -81,7 +81,6 @@ public class TenantUserServiceImpl extends AbstractTenantAwareService implements
                 .isActive(true)
                 .isEmailVerified(false)
                 .isPhoneVerified(false)
-                .userType(registrationDto.getUserType())
                 .primaryTenant(tenant)
                 .build();
 
@@ -299,8 +298,8 @@ public class TenantUserServiceImpl extends AbstractTenantAwareService implements
                 .isActive(user.isActive())
                 .isEmailVerified(user.isEmailVerified())
                 .isPhoneVerified(user.isPhoneVerified())
-                .userType(user.getUserType())
                 .primaryTenantId(user.getPrimaryTenant().getId())
+                .primaryTenantName(user.getPrimaryTenant().getName())
                 .createdAt(user.getCreatedAt())
                 .createdBy(user.getCreatedBy())
                 .updatedAt(user.getUpdatedAt())

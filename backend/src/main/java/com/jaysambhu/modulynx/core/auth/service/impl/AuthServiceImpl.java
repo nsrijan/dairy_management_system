@@ -206,7 +206,6 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(true)
                 .isEmailVerified(false)
                 .isPhoneVerified(false)
-                .userType(registrationRequest.getUserType())
                 .primaryTenant(tenant)
                 .build();
 
@@ -264,7 +263,6 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(user.isActive())
                 .isEmailVerified(user.isEmailVerified())
                 .isPhoneVerified(user.isPhoneVerified())
-                .userType(user.getUserType())
                 .primaryTenantId(user.getPrimaryTenant().getId())
                 .primaryTenantName(user.getPrimaryTenant().getName())
                 .createdAt(user.getCreatedAt())

@@ -15,7 +15,7 @@ public enum RoleName {
 
     // Dairy module roles
     DAIRY_MANAGER("Dairy Manager"),
-    MILK_COLLECTION_MANAGER("Milk Collection Manager"),
+    MCB_MANAGER("Milk Collection Manager"),
     PRODUCTION_MANAGER("Production Manager"),
     INVENTORY_MANAGER("Inventory Manager"),
     QUALITY_CONTROL("Quality Control"),
@@ -35,16 +35,6 @@ public enum RoleName {
 
     public String getDisplayName() {
         return displayName;
-    }
-
-    public RoleType getRoleType() {
-        if (this == SYSTEM_ADMIN) {
-            return RoleType.SYSTEM;
-        } else if (this == TENANT_ADMIN) {
-            return RoleType.TENANT;
-        } else {
-            return RoleType.COMPANY;
-        }
     }
 
     /**

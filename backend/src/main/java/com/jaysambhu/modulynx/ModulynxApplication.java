@@ -8,11 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @EnableJpaAuditing
 @ComponentScan(basePackages = {
-        "com.jaysambhu.modulynx.core",
-        "com.jaysambhu.modulynx.modules",
-        "com.jaysambhu.modulynx.common",
-        "com.jaysambhu.modulynx.config",
-        "com.jaysambhu.modulynx.context"
+        "com.jaysambhu.modulynx.*"
 })
 public class ModulynxApplication {
 

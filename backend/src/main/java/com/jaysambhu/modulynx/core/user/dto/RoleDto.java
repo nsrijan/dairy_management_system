@@ -2,7 +2,6 @@ package com.jaysambhu.modulynx.core.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.jaysambhu.modulynx.core.user.model.RoleName;
-import com.jaysambhu.modulynx.core.user.model.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,8 +24,6 @@ public class RoleDto {
     private RoleName name;
 
     private String description;
-
-    private RoleType roleType;
 
     private Set<PermissionDto> permissions;
 }
