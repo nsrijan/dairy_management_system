@@ -1,6 +1,6 @@
 -- Create system tenant if not exists
-INSERT INTO tenant (id, name, slug, is_active, created_at, updated_at, version, module_type)
-VALUES (1, 'System Tenant', 'system', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, 'DAIRY')
+INSERT INTO tenant (id, name, slug, is_active, created_at, updated_at, version)
+VALUES (1, 'System Tenant', 'system', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create system company if not exists

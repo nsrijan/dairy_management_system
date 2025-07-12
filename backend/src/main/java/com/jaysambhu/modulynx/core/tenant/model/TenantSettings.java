@@ -78,7 +78,7 @@ public class TenantSettings extends BaseEntity {
 
     @Column(name = "timezone", nullable = false)
     private String timezone;
-
+    
     @Override
     public boolean equals(Object o) {
         if (this == o)

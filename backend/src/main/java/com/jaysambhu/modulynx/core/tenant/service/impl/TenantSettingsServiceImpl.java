@@ -1,10 +1,9 @@
 package com.jaysambhu.modulynx.core.tenant.service.impl;
 
-import com.jaysambhu.modulynx.common.exception.ResourceNotFoundException;
 import com.jaysambhu.modulynx.common.service.AbstractTenantAwareService;
 import com.jaysambhu.modulynx.context.TenantContext;
-import com.jaysambhu.modulynx.core.tenant.dto.TenantSettingsDto;
 import com.jaysambhu.modulynx.core.tenant.dto.TenantPreferencesDto;
+import com.jaysambhu.modulynx.core.tenant.dto.TenantSettingsDto;
 import com.jaysambhu.modulynx.core.tenant.model.Tenant;
 import com.jaysambhu.modulynx.core.tenant.model.TenantSettings;
 import com.jaysambhu.modulynx.core.tenant.model.TenantPreferences;

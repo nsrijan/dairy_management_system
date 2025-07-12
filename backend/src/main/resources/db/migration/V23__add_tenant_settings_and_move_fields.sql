@@ -17,8 +17,8 @@ CREATE TABLE tenant_settings (
     date_format VARCHAR(50) NOT NULL,
     time_format VARCHAR(50) NOT NULL,
     number_format VARCHAR(50) NOT NULL,
-    currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-    timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
+    currency VARCHAR(10) NOT NULL,
+    timezone VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     created_by VARCHAR(255),
     updated_at TIMESTAMP,
@@ -113,29 +113,24 @@ CREATE TABLE tenant_preferences_aud (
 -- Move data from tenant to tenant_settings
 INSERT INTO tenant_settings (
     tenant_id,
-    currency,
-    timezone,
     default_language,
     date_format,
     time_format,
     number_format,
+    currency,
+    timezone,
     created_at
 )
 SELECT 
     id as tenant_id,
-    currency,
-    timezone,
     'en' as default_language,
     'MM/dd/yyyy' as date_format,
     'HH:mm:ss' as time_format,
     '#,##0.00' as number_format,
+    'USD' as currency,
+    'UTC' as timezone,
     NOW() as created_at
 FROM tenant;
 
 -- Remove columns from tenant table
 ALTER TABLE tenant DROP COLUMN IF EXISTS currency;
-ALTER TABLE tenant DROP COLUMN IF EXISTS timezone;
-
--- Remove columns from tenant_aud table
-ALTER TABLE tenant_aud DROP COLUMN IF EXISTS currency;
-ALTER TABLE tenant_aud DROP COLUMN IF EXISTS timezone; 
